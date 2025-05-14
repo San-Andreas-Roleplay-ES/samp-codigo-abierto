@@ -1,0 +1,22 @@
+# Executables
+samp-npc
+samp03svr
+announce
+
+# Files
+*.ini
+*.log
+*.txt
+*.pdb
+*.db
+*.exe
+*.lnk
+*.amx
+*.col
+*.html
+*.dll
+*.so
+
+# Folders
+scriptfiles/
+logs/
