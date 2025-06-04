@@ -70,6 +70,7 @@
 //features
 #include "features/admin/header"
 #include "features/player/header"
+#include "features/fcnpc/header"
 
 main() 
 {

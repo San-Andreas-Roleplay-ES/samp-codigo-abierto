@@ -23,7 +23,7 @@
 
 hook OnPlayerSpawn(playerid)
 {
-    return SendClientMessage(playerid, COLOR_YELLOW, "Comandos disponibles: /irpos, /crearveh, /creararma, /hora, /clima");
+    return SendClientMessage(playerid, COLOR_YELLOW, "Comandos disponibles: /irpos, /crearveh, /creararma, /hora, /clima, /crearfcnpc");
 }
 
 CMD:hora(playerid, params[])
