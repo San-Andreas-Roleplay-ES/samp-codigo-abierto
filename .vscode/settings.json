@@ -1,5 +1,7 @@
 {
     "files.encoding": "windows1252",
     "files.eol": "\n",
-    "editor.fontSize": 12
+    "editor.fontSize": 12,
+    "prettier.embeddedLanguageFormatting": "off",
+    "prettier.enable": false
 }
