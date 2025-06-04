@@ -25,8 +25,9 @@
 #include <a_mysql>
 #include <a_http>
 #include <crashdetect>
-#include <colandreas>	
+#include <colandreas>
 #include <streamer>
+#include <FCNPC>
 #include <YSI_Coding\y_va>
 #include <YSI_Data\y_iterate>
 #include <YSI_Data\y_bit>
