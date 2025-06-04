@@ -68,6 +68,8 @@
 #include "config/timers"
 
 //features
+#include "features/admin/header"
+#include "features/player/header"
 
 main() 
 {
@@ -78,6 +80,17 @@ main()
 
 public OnGameModeInit()
 {
-	SetGameModeText("SARP.es Open Source");
+	SendRconCommand("hostname "SERVER_NAME" | "SERVER_URL" [Código abierto]");
+	SetGameModeText("Test Server");
+
+	AddPlayerClassEx(1, 102, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
+	AddPlayerClassEx(2, 106, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
+	AddPlayerClassEx(3, 108, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
+	AddPlayerClassEx(4, 116, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
+	AddPlayerClassEx(5, 274, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
+	AddPlayerClassEx(6, 277, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
+	AddPlayerClassEx(7, 280, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
+	AddPlayerClassEx(8, 285, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
+	AddPlayerClassEx(9, 287, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	return 1;
 }
