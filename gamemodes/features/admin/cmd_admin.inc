@@ -23,7 +23,7 @@
 
 hook OnPlayerSpawn(playerid)
 {
-    return SendClientMessage(playerid, COLOR_YELLOW, "Comandos disponibles: /irpos, /crearveh, /hora, /clima");
+    return SendClientMessage(playerid, COLOR_YELLOW, "Comandos disponibles: /irpos, /crearveh, /creararma, /hora, /clima");
 }
 
 CMD:hora(playerid, params[])
@@ -71,7 +71,7 @@ CMD:crearveh(playerid, params[])
 		return SendClientMessage(playerid, COLOR_GRAD2, "USO: /crearveh [modelid] [col1] [col2] [sirena (opcional)]");
 
     if(params[0] == -1 || params[0] == 449 || params[0] == 537 || params[0] == 538 || params[0] == 569 || params[0] == 570 || params[0] == 590)
-        return SendClientMessage(playerid, COLOR_FADE3, "Modelo inválido.");
+        return SendClientMessage(playerid, COLOR_FADE3, "Modelo de vehículo inválido.");
 
 	new Float: x, Float: y, Float: z, Float: a;
 	GetPlayerPos(playerid, x, y, z);
@@ -79,5 +79,17 @@ CMD:crearveh(playerid, params[])
 
 	new vehicleid = CreateVehicle(params[0], x, y, z, a, params[1], params[2], params[3] == 1 ? 0 : -1);
 	PutPlayerInVehicle(playerid, vehicleid, 0);
+	return 1;
+}
+
+CMD:creararma(playerid, params[])
+{
+	if(sscanf(params, "k<weapon>d", params[0], params[1]))
+		return SendClientMessage(playerid, COLOR_GRAD2, "USO: /creararma [modelid] [ammo] [skill]");
+
+	if(params[0] < 1 || params[0] > 46)
+		return SendClientMessage(playerid, COLOR_FADE3, "Modelo de arma inválido.");
+
+	GivePlayerWeapon(playerid, params[0], params[1]);
 	return 1;
 }
