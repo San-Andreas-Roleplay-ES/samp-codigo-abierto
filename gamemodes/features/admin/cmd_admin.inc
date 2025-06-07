@@ -84,6 +84,7 @@ CMD:crearveh(playerid, params[])
 
 CMD:creararma(playerid, params[])
 {
+
 	if(sscanf(params, "k<weapon>d", params[0], params[1]))
 		return SendClientMessage(playerid, COLOR_GRAD2, "USO: /creararma [modelid] [ammo] [skill]");
 
@@ -92,4 +93,14 @@ CMD:creararma(playerid, params[])
 
 	GivePlayerWeapon(playerid, params[0], params[1]);
 	return 1;
+}
+
+// Da jetpack al jugador que use el comando /jetpack
+CMD:jetpack(playerid, params[])
+{
+    if(IsPlayerInAnyVehicle(playerid))
+        return SendClientMessage(playerid, COLOR_FADE3, "No puedes usar el jetpack dentro de un vehículo.");
+
+    SetPlayerSpecialAction(playerid, SPECIAL_ACTION_USEJETPACK);
+    return SendClientMessage(playerid, COLOR_GRAD1, "Jetpack creado.");
 }
