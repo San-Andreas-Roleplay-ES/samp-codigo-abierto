@@ -95,7 +95,7 @@ CMD:creararma(playerid, params[])
 	return 1;
 }
 
-CMD:jetpack(playerid, params[])
+CMD:jetpack(playerid)
 {
     if(IsPlayerInAnyVehicle(playerid))
         return SendClientMessage(playerid, COLOR_FADE3, "No puedes usar el jetpack dentro de un vehículo.");
