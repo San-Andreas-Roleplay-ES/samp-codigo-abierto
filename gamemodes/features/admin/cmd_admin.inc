@@ -95,7 +95,6 @@ CMD:creararma(playerid, params[])
 	return 1;
 }
 
-// Da jetpack al jugador que use el comando /jetpack
 CMD:jetpack(playerid, params[])
 {
     if(IsPlayerInAnyVehicle(playerid))
