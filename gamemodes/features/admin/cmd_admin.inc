@@ -22,15 +22,13 @@
 #include <YSI_Coding\y_hooks>
 #include "features/admin/objects.inc"
 #include "features/admin/teleports.inc"
-#include "features/admin/checkpoints.inc"
+#include "features/admin/coordenadas.inc"
 #include "features/admin/anims.inc"
-
-// Aquí van solo los comandos generales y administrativos, por ejemplo:
 
 CMD:hora(playerid, params[])
 {
     if(sscanf(params, "d", params[0]))
-        return SendClientMessage(playerid, COLOR_GRAD2, "USO: /hora [hora]");
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /hora [hora]");
 
     if(params[0] < 0 || params[0] > 23)
         return SendClientMessage(playerid, COLOR_FADE3, "Hora inválida.");
@@ -42,7 +40,7 @@ CMD:hora(playerid, params[])
 CMD:clima(playerid, params[])
 {
     if(sscanf(params, "d", params[0]))
-        return SendClientMessage(playerid, COLOR_GRAD2, "USO: /clima [clima]");
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /clima [clima]");
 
     if(params[0] < 0 || params[0] > 20)
         return SendClientMessage(playerid, COLOR_FADE3, "Clima inválido.");
@@ -56,20 +54,20 @@ CMD:irpos(playerid, params[])
     new Float:posX, Float:posY, Float:posZ, vw, interior;
 
     if(sscanf(params, "fffD(0)D(0)", posX, posY, posZ, vw, interior)) 
-        return SendClientMessage(playerid, COLOR_GRAD2, "USO: /irpos [x] [y] [z] [virtualworld] [interior]");
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /irpos [x] [y] [z] [virtualworld] [interior]");
 
     SetPlayerPos(playerid, posX, posY, posZ);
     SetPlayerInterior(playerid, interior);
     SetPlayerVirtualWorld(playerid, vw);
 
-    SendClientMessage(playerid, COLOR_GRAD1, "Has sido teletransportado a las coordenadas.");
+    SendClientMessage(playerid, COLOR_GRAD2, "Has sido teletransportado a las coordenadas: X: %.2f, Y: %.2f, Z: %.2f", posX, posY, posZ);
     return 1;
 }
 
 CMD:crearveh(playerid, params[])
 {
     if(sscanf(params, "k<vehicle>ddD(0)", params[0], params[1], params[2], params[3]))
-        return SendClientMessage(playerid, COLOR_GRAD2, "USO: /crearveh [modelid] [col1] [col2] [sirena (opcional)]");
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /crearveh [modelid] [col1] [col2] [sirena (opcional)]");
 
     if(params[0] == -1 || params[0] == 449 || params[0] == 537 || params[0] == 538 || params[0] == 569 || params[0] == 570 || params[0] == 590)
         return SendClientMessage(playerid, COLOR_FADE3, "Modelo de vehículo inválido.");
@@ -80,19 +78,25 @@ CMD:crearveh(playerid, params[])
 
     new vehicleid = CreateVehicle(params[0], x, y, z, a, params[1], params[2], params[3] == 1 ? 0 : -1);
     PutPlayerInVehicle(playerid, vehicleid, 0);
+
+    SendClientMessage(playerid, COLOR_GRAD2, "Vehículo creado con: ID MODEL: %d | SAMP MODEL: %d ", params[0]);
+
     return 1;
 }
 
 CMD:creararma(playerid, params[])
 {
     if(sscanf(params, "k<weapon>dd", params[0], params[1], params[2]))
-        return SendClientMessage(playerid, COLOR_GRAD2, "USO: /creararma [modelid] [ammo] [skill]");
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /creararma [modelid] [ammo] [skill]");
 
     if(params[0] < 1 || params[0] > 46)
         return SendClientMessage(playerid, COLOR_FADE3, "Modelo de arma inválido.");
 
     GivePlayerWeapon(playerid, params[0], params[1]);
     SetPlayerSkillLevel(playerid, params[0], params[2]);
+
+    SendClientMessage(playerid, COLOR_GRAD2, "Arma creada con éxito: ID %d, Munición: %d, Habilidad: %d", params[0], params[1], params[2]);
+
     return 1;
 }
 
@@ -102,7 +106,15 @@ CMD:jetpack(playerid, params[])
         return SendClientMessage(playerid, COLOR_FADE3, "No puedes usar el jetpack dentro de un vehículo.");
 
     SetPlayerSpecialAction(playerid, SPECIAL_ACTION_USEJETPACK);
-    SendClientMessage(playerid, COLOR_GRAD1, "Jetpack creado.");
+    SendClientMessage(playerid, COLOR_GRAD2, "Jetpack creado.");
     return 1;
 }
 
+CMD:limpiarchat(playerid, params[])
+{
+    for(new i = 0; i < 50; i++)
+    {
+        SendClientMessage(playerid, -1, " ");
+    }
+    return 1;
+}
