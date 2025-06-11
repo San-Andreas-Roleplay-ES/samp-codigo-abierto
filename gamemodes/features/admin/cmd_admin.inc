@@ -49,21 +49,6 @@ CMD:clima(playerid, params[])
     return 1;
 }
 
-CMD:irpos(playerid, params[])
-{
-    new Float:posX, Float:posY, Float:posZ, vw, interior;
-
-    if(sscanf(params, "fffD(0)D(0)", posX, posY, posZ, vw, interior)) 
-        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /irpos [x] [y] [z] [virtualworld] [interior]");
-
-    SetPlayerPos(playerid, posX, posY, posZ);
-    SetPlayerInterior(playerid, interior);
-    SetPlayerVirtualWorld(playerid, vw);
-
-    SendClientMessage(playerid, COLOR_GRAD2, "Has sido teletransportado a las coordenadas: X: %.2f, Y: %.2f, Z: %.2f", posX, posY, posZ);
-    return 1;
-}
-
 CMD:crearveh(playerid, params[])
 {
     if(sscanf(params, "k<vehicle>ddD(0)", params[0], params[1], params[2], params[3]))
