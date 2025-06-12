@@ -28,6 +28,6 @@ CMD:ayuda(playerid, params[])
     SendClientMessage(playerid, COLOR_DARKYELLOW, "Comandos de animación: /anims, /bailar, /sentarse, /saludar");
     SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Comandos de objetos: /crearobjeto, /editarobjeto, /eliminarobjeto");
     SendClientMessage(playerid, COLOR_DARKYELLOW, "Comandos de coordenadas: /marcarc(oord), /listarc(oords)");
-    SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Comandos de utilidades: /hora, /clima, /crearveh, /creararma");
+    SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Comandos de utilidades: /skin, /hora, /clima, /crearveh, /creararma");
     SendClientMessage(playerid, COLOR_DARKYELLOW, "Comandos de chat: /limpiarchat");
 }
