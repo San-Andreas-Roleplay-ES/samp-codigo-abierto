@@ -14,6 +14,7 @@ enum AdminObjectData
 new AdminObjects[MAX_ADMIN_OBJECTS][AdminObjectData];
 new adminObjectCount = 0;
 
+alias:crearobjeto("crearobj", "crearob", "crearo")
 CMD:crearobjeto(playerid, params[])
 {
     if(IsPlayerInAnyVehicle(playerid))
@@ -45,6 +46,7 @@ CMD:crearobjeto(playerid, params[])
     return 1;
 }
 
+alias:editarobjeto("editarobj", "editarob", "editaro")
 CMD:editarobjeto(playerid, params[])
 {
     if(IsPlayerInAnyVehicle(playerid))
@@ -75,6 +77,7 @@ CMD:editarobjeto(playerid, params[])
     return 1;
 }
 
+alias:eliminarobjeto("eliminarobj", "eliminarob", "eliminaro")
 CMD:eliminarobjeto(playerid, params[])
 {
     if(IsPlayerInAnyVehicle(playerid))
