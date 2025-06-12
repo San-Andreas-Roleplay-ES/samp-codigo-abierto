@@ -19,39 +19,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#define MAX_FCNPC (16)
+#include <YSI_Coding\y_hooks>
 
-enum E_FCNPC_STATUS
+hook OnGameModeInit()
 {
-    E_FCNPC_STATUS_IDLE = 0,
-    E_FCNPC_STATUS_WANDER,
-    E_FCNPC_STATUS_CHASE,
-    E_FCNPC_STATUS_ATTACK,
-    E_FCNPC_STATUS_DEAD,
+    //Load the SA map
+    CA_Init();
+
+    // Load the FCNPC plugin
+    FCNPC_UseMoveMode(FCNPC_MOVE_MODE_COLANDREAS, true);
+    FCNPC_UseMovePathfinding(FCNPC_MOVE_PATHFINDING_Z, true);
+    FCNPC_UseCrashLog(true);
+    return 1;
 }
-
-enum E_FCNPC_TYPE
-{
-    E_FCNPC_TYPE_NONE = 0,
-    E_FCNPC_TYPE_DEER,
-    E_FCNPC_TYPE_PIG,
-    E_FCNPC_TYPE_RABBIT,
-    E_FCNPC_TYPE_BEAR,
-}
-
-const E_FCNPC_DATA_MIN_TYPE = 0;
-const E_FCNPC_DATA_MAX_TYPE = 1;
-
-enum E_FCNPC_DATA
-{
-    E_FCNPC_DATA_FCNPC,
-    E_FCNPC_TYPE:E_FCNPC_DATA_TYPE,
-    E_FCNPC_STATUS:E_FCNPC_DATA_STATUS,
-    Float:E_FCNPC_DATA_SPAWN_X,
-    Float:E_FCNPC_DATA_SPAWN_Y,
-    Float:E_FCNPC_DATA_SPAWN_Z
-}
-
-new FCNPC[MAX_FCNPC][E_FCNPC_DATA];
-new Iterator:FCNPC_Iterator<MAX_FCNPC>;
-

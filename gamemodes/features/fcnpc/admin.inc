@@ -41,7 +41,7 @@ CMD:crearfcnpc(playerid, params[])
     if(fcnpc_id == ITER_NONE)
         return SendClientMessage(playerid, COLOR_FADE3, va_return("No se pueden crear más actores, máximo alcanzado (%d).", MAX_FCNPC));
 
-    new fcnpc = FCNPC_Create(va_return("FCNPC_%d", fcnpc_id));
+    new fcnpc = FCNPC_Create(va_return("Ciervo_%d", fcnpc_id));
 
     if(FCNPC_IsValid(fcnpc) == false)
         return SendClientMessage(playerid, COLOR_FADE3, "No se pudo crear el actor.");
@@ -51,12 +51,22 @@ CMD:crearfcnpc(playerid, params[])
     FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC] = fcnpc;
     FCNPC[fcnpc_id][E_FCNPC_DATA_TYPE] = E_FCNPC_TYPE:fcnpc_type;
     FCNPC[fcnpc_id][E_FCNPC_DATA_STATUS] = E_FCNPC_STATUS:E_FCNPC_STATUS_IDLE;
+    FCNPC[fcnpc_id][E_FCNPC_DATA_SPAWN_X] = pos_x + 1.5;
+    FCNPC[fcnpc_id][E_FCNPC_DATA_SPAWN_Y] = pos_y + 1.5;
+    FCNPC[fcnpc_id][E_FCNPC_DATA_SPAWN_Z] = pos_z;
 
-    FCNPC_Spawn(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], 167, pos_x + 1.5, pos_y + 1.5, pos_z);
+    FCNPC_Spawn(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], 167, FCNPC[fcnpc_id][E_FCNPC_DATA_SPAWN_X], FCNPC[fcnpc_id][E_FCNPC_DATA_SPAWN_Y], FCNPC[fcnpc_id][E_FCNPC_DATA_SPAWN_Z]);
     FCNPC_SetHealth(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], 100.0);
     FCNPC_SetArmour(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], 0.0);
     FCNPC_SetInvulnerable(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], false);
     FCNPC_ShowInTabListForPlayer(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], playerid);
+
+    FCNPC_SetBehaviour(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], FCNPC_BEHAVIOUR_NEUTRAL);
+
+    FCNPC_UseAggroLineOfSight(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], true);
+    FCNPC_SetAggroSightRange(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], 10.0);
+
+    FCNPC_SetLeashRange(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], 10.0);
     return 1;
 }
 
@@ -66,7 +76,7 @@ CMD:controlar(playerid, params[])
     if(sscanf(params, "dd", fcnpc_id, mode))
     {
         SendClientMessage(playerid, COLOR_GRAD2, "USO: /controlar [ID del actor] [modo]");
-        SendClientMessage(playerid, COLOR_ORANGE, "Modos: 0 Respawn, 1 Matar, 2 Perseguir jugador, 3 Detener, 5 Atacar jugador, 6 Detener ataque");
+        SendClientMessage(playerid, COLOR_ORANGE, "Modos: 0 Respawn, 1 Matar, 2 Perseguir jugador, 3 Detener, 4 Deambular, 5 Atacar jugador, 6 Detener ataque");
         return 1;
     }
 
@@ -85,6 +95,8 @@ CMD:controlar(playerid, params[])
         {
             FCNPC[fcnpc_id][E_FCNPC_DATA_STATUS] = E_FCNPC_STATUS:E_FCNPC_STATUS_IDLE;
             FCNPC_Respawn(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC]);
+            FCNPC_SetPosition(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], FCNPC[fcnpc_id][E_FCNPC_DATA_SPAWN_X], FCNPC[fcnpc_id][E_FCNPC_DATA_SPAWN_Y], FCNPC[fcnpc_id][E_FCNPC_DATA_SPAWN_Z]);
+            FCNPC_SetHealth(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], 100.0);
         }
         case 1:
         {
@@ -101,11 +113,14 @@ CMD:controlar(playerid, params[])
             FCNPC[fcnpc_id][E_FCNPC_DATA_STATUS] = E_FCNPC_STATUS:E_FCNPC_STATUS_IDLE;
             FCNPC_Stop(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC]);
         }
+        case 4:
+        {
+            FCNPC_SetWander(fcnpc_id);
+        }
         case 5:
         {
             FCNPC[fcnpc_id][E_FCNPC_DATA_STATUS] = E_FCNPC_STATUS:E_FCNPC_STATUS_ATTACK;
-            FCNPC_AimAtPlayer(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], playerid);
-            FCNPC_MeleeAttack(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC]);
+            FCNPC_SetTarget(FCNPC[fcnpc_id][E_FCNPC_DATA_FCNPC], playerid);
         }
         case 6:
         {

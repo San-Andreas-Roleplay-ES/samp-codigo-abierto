@@ -20,5 +20,7 @@
 // SOFTWARE.
 
 #include "features/fcnpc/data"
+#include "features/fcnpc/core"
 #include "features/fcnpc/callbacks"
 #include "features/fcnpc/admin"
+#include "features/fcnpc/actions/wander"

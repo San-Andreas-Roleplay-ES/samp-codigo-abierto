@@ -28,6 +28,7 @@
 #include <colandreas>
 #include <streamer>
 #include <FCNPC>
+#include <FCNPC-AI>
 #include <YSI_Coding\y_va>
 #include <YSI_Data\y_iterate>
 #include <YSI_Data\y_bit>
@@ -81,7 +82,7 @@ main()
 
 public OnGameModeInit()
 {
-	SendRconCommand("hostname "SERVER_NAME" | "SERVER_URL" [Código abierto]");
+	SendRconCommand("hostname "SERVER_NAME" | "SERVER_URL" [Test Server]");
 	SetGameModeText("Test Server");
 
 	AddPlayerClassEx(1, 102, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
@@ -93,5 +94,6 @@ public OnGameModeInit()
 	AddPlayerClassEx(7, 280, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	AddPlayerClassEx(8, 285, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	AddPlayerClassEx(9, 287, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
+	AddPlayerClassEx(10, 73, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	return 1;
 }
