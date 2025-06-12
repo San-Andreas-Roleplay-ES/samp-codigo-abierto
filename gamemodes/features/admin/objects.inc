@@ -65,7 +65,7 @@ CMD:editarobjeto(playerid, params[])
             format(line, sizeof(line), "ID: %d (Model: %d)\n", i, GetPlayerObjectModel(playerid, AdminObjects[i][objID]));
             strcat(dialogStr, line);
         }
-        ShowPlayerDialog(playerid, DIALOG_OBJLIST, DIALOG_STYLE_LIST, "Selecciona un objeto para editar:", dialogStr, "Editar", "Cerrar");
+        Dialog_Show(playerid, DIALOG_OBJLIST, DIALOG_STYLE_LIST, "Selecciona un objeto para editar:", dialogStr, "Editar", "Cerrar");
         return 1;
     }
 
@@ -108,16 +108,12 @@ CMD:eliminarobjeto(playerid, params[])
     return 1;
 }
 
-public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
+Dialog:DIALOG_OBJLIST(playerid, response, listitem, inputtext[])
 {
-    if(dialogid == DIALOG_OBJLIST && response)
+    if(listitem >= 0 && listitem < adminObjectCount)
     {
-        if(listitem >= 0 && listitem < adminObjectCount)
-        {
-            EditPlayerObject(playerid, AdminObjects[listitem][objID]);
-            SendClientMessage(playerid, COLOR_GRAD1, "Editando objeto seleccionado.");
-        }
-        return 1;
+        EditPlayerObject(playerid, AdminObjects[listitem][objID]);
+        SendClientMessage(playerid, COLOR_GRAD1, "Editando objeto seleccionado.");
     }
-    return 0;
+    return 1;
 }

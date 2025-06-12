@@ -20,6 +20,7 @@
 // SOFTWARE.
 
 #include <YSI_Coding\y_hooks>
+
 #include "features/admin/objects.inc"
 #include "features/admin/teleports.inc"
 #include "features/admin/coordenadas.inc"
@@ -64,8 +65,7 @@ CMD:crearveh(playerid, params[])
     new vehicleid = CreateVehicle(params[0], x, y, z, a, params[1], params[2], params[3] == 1 ? 0 : -1);
     PutPlayerInVehicle(playerid, vehicleid, 0);
 
-    SendClientMessage(playerid, COLOR_GRAD2, "Vehículo creado con: ID MODEL: %d | SAMP MODEL: %d ", params[0]);
-
+    SendClientMessage(playerid, COLOR_GRAD2, va_return("Vehículo creado con: ID MODEL: %d | SAMP MODEL: %d ", params[0], vehicleid));
     return 1;
 }
 
@@ -80,8 +80,7 @@ CMD:creararma(playerid, params[])
     GivePlayerWeapon(playerid, params[0], params[1]);
     SetPlayerSkillLevel(playerid, params[0], params[2]);
 
-    SendClientMessage(playerid, COLOR_GRAD2, "Arma creada con éxito: ID %d, Munición: %d, Habilidad: %d", params[0], params[1], params[2]);
-
+    SendClientMessage(playerid, COLOR_GRAD2, va_return("Arma creada con éxito: ID %d, Munición: %d, Habilidad: %d", params[0], params[1], params[2]));
     return 1;
 }
 

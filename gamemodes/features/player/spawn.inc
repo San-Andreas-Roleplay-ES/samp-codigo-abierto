@@ -30,10 +30,8 @@ public OnPlayerConnect(playerid)
 
     new name[MAX_PLAYER_NAME];
     GetPlayerName(playerid, name, sizeof(name));
-    new msg[128];
-    format(msg, sizeof(msg), "{ED801A}%s se ha conectado al servidor.", name);
-    SendClientMessageToAll(COLOR_GRAD1, msg);
 
+    SendClientMessageToAll(COLOR_GRAD1, va_return("{ED801A}%s se ha conectado al servidor.", name));
     return 1;
 }
 
@@ -71,6 +69,5 @@ public OnPlayerSpawn(playerid)
     GameTextForPlayer(playerid,"~p~"SERVER_DISCORD"", 5000, 4);
 
     SendClientMessage(playerid, COLOR_GRAD1, "¡Bienvenido al servidor! Usa /ayuda para ver los comandos disponibles.");
-
     return 1;
 }
