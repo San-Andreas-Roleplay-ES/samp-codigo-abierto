@@ -20,3 +20,14 @@
 // SOFTWARE.
 
 #include "features/player/spawn"
+
+CMD:ayuda(playerid, params[])
+{
+    SendClientMessage(playerid, COLOR_YELLOW, "----------------------Comandos disponibles------------------------");
+    SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Comandos de teleport: /jetpack, /irpos, /cj, /idlewood, /ls, /lv, /area51");
+    SendClientMessage(playerid, COLOR_DARKYELLOW, "Comandos de animación: /anims, /bailar, /sentarse, /saludar");
+    SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Comandos de objetos: /crearobjeto, /editarobjeto, /eliminarobjeto");
+    SendClientMessage(playerid, COLOR_DARKYELLOW, "Comandos de coordenadas: /marcarc(oord), /listarc(oords)");
+    SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Comandos de utilidades: /skin, /hora, /clima, /crearveh, /creararma");
+    SendClientMessage(playerid, COLOR_DARKYELLOW, "Comandos de chat: /limpiarchat");
+}
