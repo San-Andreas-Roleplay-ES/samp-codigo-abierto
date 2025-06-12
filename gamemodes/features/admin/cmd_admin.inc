@@ -56,7 +56,7 @@ CMD:crearveh(playerid, params[])
 {
     new vehiclemodelid, color1, color2, sirena;
     if(sscanf(params, "dddD(0)", vehiclemodelid, color1, color2, sirena))
-        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /crearveh [vehicleid] [col1] [col2] [sirena (opcional)]");
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /crearveh [vehicleid] [color1] [color2] [sirena (opcional)]");
 
     if(vehiclemodelid < 400 || vehiclemodelid > 611 ||
         vehiclemodelid == 449 || vehiclemodelid == 537 || vehiclemodelid == 538 ||
