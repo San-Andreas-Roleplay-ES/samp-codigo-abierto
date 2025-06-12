@@ -23,6 +23,11 @@ public OnPlayerConnect(playerid)
 {
     SetPlayerColor(playerid, INVISIBLE);
 
+    for(new i = 0; i < 50; i++)
+    {
+        SendClientMessage(playerid, -1, " ");
+    }
+
     new name[MAX_PLAYER_NAME];
     GetPlayerName(playerid, name, sizeof(name));
     new msg[128];
