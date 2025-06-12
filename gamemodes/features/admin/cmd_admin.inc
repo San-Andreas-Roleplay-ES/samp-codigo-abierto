@@ -103,3 +103,16 @@ CMD:limpiarchat(playerid, params[])
     }
     return 1;
 }
+
+CMD:skin(playerid, params[])
+{
+    new skinid;
+    if(sscanf(params, "d", skinid))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /skin [id]");
+
+    if(skinid < 0 || skinid > 311)
+        return SendClientMessage(playerid, COLOR_FADE3, "ID de skin inválido (0-311).");
+
+    SetPlayerSkin(playerid, skinid);
+    return 1;
+}
