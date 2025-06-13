@@ -28,59 +28,67 @@
 
 CMD:hora(playerid, params[])
 {
-    if(sscanf(params, "d", params[0]))
-        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /hora [hora]");
+    new hora;
+    if(sscanf(params, "d", hora))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /hora [hora] (0-23)");
 
-    if(params[0] < 0 || params[0] > 23)
+    if(hora < 0 || hora > 23)
         return SendClientMessage(playerid, COLOR_FADE3, "Hora inválida.");
 
-    SetWorldTime(params[0]);
+    SetWorldTime(hora);
     return 1;
 }
 
 CMD:clima(playerid, params[])
 {
-    if(sscanf(params, "d", params[0]))
-        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /clima [clima]");
+    new weatherid;
+    if(sscanf(params, "d", weatherid))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /clima [weatherid] (0-20)");
 
-    if(params[0] < 0 || params[0] > 20)
+    if(weatherid < 0 || weatherid > 20)
         return SendClientMessage(playerid, COLOR_FADE3, "Clima inválido.");
 
-    SetWeather(params[0]);
+    SetWeather(weatherid);
     return 1;
 }
 
 CMD:crearveh(playerid, params[])
 {
-    if(sscanf(params, "k<vehicle>ddD(0)", params[0], params[1], params[2], params[3]))
-        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /crearveh [modelid] [col1] [col2] [sirena (opcional)]");
+    new vehiclemodelid, color1, color2, sirena;
+    if(sscanf(params, "dddD(0)", vehiclemodelid, color1, color2, sirena))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /crearveh [vehicleid] [color1] [color2] [sirena (opcional)]");
 
-    if(params[0] == -1 || params[0] == 449 || params[0] == 537 || params[0] == 538 || params[0] == 569 || params[0] == 570 || params[0] == 590)
+    if(vehiclemodelid < 400 || vehiclemodelid > 611 ||
+        vehiclemodelid == 449 || vehiclemodelid == 537 || vehiclemodelid == 538 ||
+        vehiclemodelid == 569 || vehiclemodelid == 570 || vehiclemodelid == 590)
+    {
         return SendClientMessage(playerid, COLOR_FADE3, "Modelo de vehículo inválido.");
+    }
 
-    new Float: x, Float: y, Float: z, Float: a;
+    new Float:x, Float:y, Float:z, Float:a;
     GetPlayerPos(playerid, x, y, z);
     GetPlayerFacingAngle(playerid, a);
 
-    new vehicleid = CreateVehicle(params[0], x, y, z, a, params[1], params[2], params[3] == 1 ? 0 : -1);
-    PutPlayerInVehicle(playerid, vehicleid, 0);
+    new sampvehicleid = CreateVehicle(vehiclemodelid, x, y, z, a, color1, color2, sirena == 1 ? 0 : -1);
+    PutPlayerInVehicle(playerid, sampvehicleid, 0);
 
-    SendClientMessage(playerid, COLOR_GRAD2, va_return("Vehículo creado con: ID MODEL: %d | SAMP MODEL: %d ", params[0], vehicleid));
+    SendClientMessage(playerid, COLOR_GRAD2, va_return("Vehículo creado con: Model ID: %d | Samp ID: %d ", vehiclemodelid, sampvehicleid));
     return 1;
 }
 
 CMD:creararma(playerid, params[])
 {
-    if(sscanf(params, "k<weapon>dd", params[0], params[1], params[2]))
-        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /creararma [modelid] [ammo] [skill]");
+    new weaponid, ammo, skill;
+    if(sscanf(params, "k<weapon>dd", weaponid, ammo, skill))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /creararma [weaponid] [ammo] [skill] (1-46)");
 
-    if(params[0] < 1 || params[0] > 46)
+    if(weaponid < 1 || weaponid > 46)
         return SendClientMessage(playerid, COLOR_FADE3, "Modelo de arma inválido.");
 
-    GivePlayerWeapon(playerid, params[0], params[1]);
-    SetPlayerSkillLevel(playerid, params[0], params[2]);
+    GivePlayerWeapon(playerid, weaponid, ammo);
+    SetPlayerSkillLevel(playerid, weaponid, skill);
 
-    SendClientMessage(playerid, COLOR_GRAD2, va_return("Arma creada con éxito: ID %d, Munición: %d, Habilidad: %d", params[0], params[1], params[2]));
+    SendClientMessage(playerid, COLOR_GRAD2, va_return("Arma creada con éxito: ID %d, Munición: %d, Habilidad: %d", weaponid, ammo, skill));
     return 1;
 }
 
@@ -103,11 +111,11 @@ CMD:limpiarchat(playerid, params[])
     return 1;
 }
 
-CMD:skin(playerid, params[])
+CMD:ropa(playerid, params[])
 {
     new skinid;
     if(sscanf(params, "d", skinid))
-        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /skin [id]");
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /ropa [skinid]");
 
     if(skinid < 0 || skinid > 311)
         return SendClientMessage(playerid, COLOR_FADE3, "ID de skin inválido (0-311).");
