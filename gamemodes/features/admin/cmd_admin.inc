@@ -35,7 +35,7 @@ CMD:hora(playerid, params[])
     if(hora < 0 || hora > 23)
         return SendClientMessage(playerid, COLOR_FADE3, "Hora inválida.");
 
-    SetWorldTime(timeid);
+    SetWorldTime(hora);
     return 1;
 }
 
@@ -80,7 +80,7 @@ CMD:creararma(playerid, params[])
 {
     new weaponid, ammo, skill;
     if(sscanf(params, "k<weapon>dd", weaponid, ammo, skill))
-        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /creararma [weaponid] [ammo] [skill]");
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /creararma [weaponid] [ammo] [skill] (1-46)");
 
     if(weaponid < 1 || weaponid > 46)
         return SendClientMessage(playerid, COLOR_FADE3, "Modelo de arma inválido.");
