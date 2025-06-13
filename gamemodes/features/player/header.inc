@@ -20,6 +20,7 @@
 // SOFTWARE.
 
 #include "features/player/spawn"
+#include "features/player/color"
 
 CMD:ayuda(playerid, params[])
 {
@@ -32,3 +33,4 @@ CMD:ayuda(playerid, params[])
     SendClientMessage(playerid, COLOR_DARKYELLOW, "Comandos de chat: /limpiarchat");
     return 1;
 }
+
