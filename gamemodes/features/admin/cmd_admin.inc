@@ -30,25 +30,25 @@ CMD:hora(playerid, params[])
 {
     new hora;
     if(sscanf(params, "d", hora))
-        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /hora [hora]");
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /hora [hora] (0-23)");
 
     if(hora < 0 || hora > 23)
         return SendClientMessage(playerid, COLOR_FADE3, "Hora inválida.");
 
-    SetWorldTime(hora);
+    SetWorldTime(timeid);
     return 1;
 }
 
 CMD:clima(playerid, params[])
 {
-    new clima;
-    if(sscanf(params, "d", clima))
-        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /clima [clima]");
+    new weatherid;
+    if(sscanf(params, "d", weatherid))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /clima [weatherid] (0-20)");
 
-    if(clima < 0 || clima > 20)
+    if(weatherid < 0 || weatherid > 20)
         return SendClientMessage(playerid, COLOR_FADE3, "Clima inválido.");
 
-    SetWeather(clima);
+    SetWeather(weatherid);
     return 1;
 }
 
@@ -111,11 +111,11 @@ CMD:limpiarchat(playerid, params[])
     return 1;
 }
 
-CMD:skin(playerid, params[])
+CMD:ropa(playerid, params[])
 {
     new skinid;
     if(sscanf(params, "d", skinid))
-        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /skin [id]");
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /ropa [skinid]");
 
     if(skinid < 0 || skinid > 311)
         return SendClientMessage(playerid, COLOR_FADE3, "ID de skin inválido (0-311).");
