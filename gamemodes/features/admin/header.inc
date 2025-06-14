@@ -20,3 +20,4 @@
 // SOFTWARE.
 
 #include "features/admin/cmd_admin"
+#include "features/admin/combat_log"
