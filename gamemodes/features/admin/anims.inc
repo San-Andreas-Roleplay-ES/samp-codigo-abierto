@@ -43,3 +43,18 @@ CMD:saludar(playerid, params[])
     ApplyAnimation(playerid, "ON_LOOKERS", "wave_loop", 4.1, 1, 0, 0, 0, 0);
     return 1;
 }
+
+CMD:pararanim(playerid, params[])
+{
+    ClearAnimations(playerid);
+    return 1;
+}
+
+public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
+{
+    if(newkeys & KEY_FIRE)
+    {
+        ClearAnimations(playerid);
+    }
+    return 1;
+}
