@@ -111,6 +111,7 @@ CMD:limpiarchat(playerid, params[])
     return 1;
 }
 
+alias:ropa("skin")
 CMD:ropa(playerid, params[])
 {
     new skinid;

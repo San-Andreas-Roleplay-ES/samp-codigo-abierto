@@ -56,5 +56,9 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
     {
         ClearAnimations(playerid);
     }
+    
+    // Integrar sistema de lumberjack
+    Lumberjack_OnPlayerKeyStateChange(playerid, newkeys, oldkeys);
+    
     return 1;
 }
