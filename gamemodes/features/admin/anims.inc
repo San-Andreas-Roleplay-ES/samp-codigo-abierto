@@ -52,13 +52,8 @@ CMD:pararanim(playerid, params[])
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
-    if(newkeys & KEY_FIRE)
-    {
-        ClearAnimations(playerid);
-    }
-    
     // Integrar sistema de lumberjack
-    Lumberjack_OnPlayerKeyStateChange(playerid, newkeys, oldkeys);
+    Lumberjack_OnPlayerKeyStateChg(playerid, newkeys, oldkeys);
     
     return 1;
 }

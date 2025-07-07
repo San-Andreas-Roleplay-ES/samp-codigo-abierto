@@ -1,31 +1,10 @@
-// SAN ANDREAS ROLEPLAY
-// Copyright (c) 2021 - 2025 pigeon
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-
-// ========================================
-// SISTEMA DE MINIJUEGO - TALADOR DE ÁRBOLES
-// ========================================
+// ===========================================
+// MINIJUEGO - TALADOR DE ARBOLES - LUMBERJACK
+// ===========================================
 
 #define MAX_LUMBERJACK_TREES 11
-#define LUMBERJACK_PICKUP_ID 1219
-#define LUMBERJACK_PICKUP_TYPE 2
+#define LUMBERJACK_PICKUP_ID 341
+#define LUMBERJACK_PICKUP_TYPE 1
 #define LUMBERJACK_TREE_MODEL 655
 #define LUMBERJACK_CUTTING_TIME 10
 
@@ -52,11 +31,13 @@ enum LumberjackPlayerData {
     playerMapIcons[MAX_LUMBERJACK_TREES],
     treesCut,
     cuttingTimer,
-    currentTree
+    currentTree,
+    pickupNotification,
+    PlayerText:cuttingTextDraw
 }
 
 new LumberjackPlayer[MAX_PLAYERS][LumberjackPlayerData];
-new LumberjackPickup = INVALID_STREAMER_ID;
+new LumberjackPickup;
 
 // Inicialización del sistema
 stock InitLumberjackSystem()
@@ -70,6 +51,9 @@ stock InitLumberjackSystem()
         ResetLumberjackPlayer(i);
     }
     
+    // Iniciar timer para verificar proximidad al pickup
+    SetTimer("CheckLumberjackPickupProximity", 1000, true);
+    
     print("[LumberjackSystem] Sistema de talador de árboles inicializado.");
 }
 
@@ -81,6 +65,8 @@ stock ResetLumberjackPlayer(playerid)
     LumberjackPlayer[playerid][treesCut] = 0;
     LumberjackPlayer[playerid][cuttingTimer] = 0;
     LumberjackPlayer[playerid][currentTree] = -1;
+    LumberjackPlayer[playerid][pickupNotification] = -1;
+    LumberjackPlayer[playerid][cuttingTextDraw] = PlayerText:INVALID_TEXT_DRAW;
     
     for(new i = 0; i < MAX_LUMBERJACK_TREES; i++)
     {
@@ -93,6 +79,75 @@ stock ResetLumberjackPlayer(playerid)
 stock IsPlayerNearLumberjackPickup(playerid)
 {
     return IsPlayerInRangeOfPoint(playerid, 2.0, -2008.92, -2412.19, 30.62);
+}
+
+// Mostrar notificación del pickup
+stock ShowLumberjackPickupNotif(playerid)
+{
+    // Ocultar notificación anterior si existe
+    if(LumberjackPlayer[playerid][pickupNotification] != -1)
+    {
+        CallLocalFunction("hideTDN", "ii", playerid, LumberjackPlayer[playerid][pickupNotification]);
+        LumberjackPlayer[playerid][pickupNotification] = -1;
+    }
+    
+    new message[128];
+    if(LumberjackPlayer[playerid][isActive])
+    {
+        format(message, sizeof(message), "Presiona N para cancelar el trabajo de talador.");
+    }
+    else
+    {
+        format(message, sizeof(message), "Presiona Y para iniciar el trabajo de talador.");
+    }
+    
+    LumberjackPlayer[playerid][pickupNotification] = CallLocalFunction("ShowTDN_Manual", "is", playerid, message);
+}
+
+// Ocultar notificación del pickup
+stock HideLumberjackPickupNotif(playerid)
+{
+    if(LumberjackPlayer[playerid][pickupNotification] != -1)
+    {
+        CallLocalFunction("hideTDN", "ii", playerid, LumberjackPlayer[playerid][pickupNotification]);
+        LumberjackPlayer[playerid][pickupNotification] = -1;
+    }
+}
+
+// Actualizar notificación con delay
+forward UpdateLumberjackNotification(playerid);
+public UpdateLumberjackNotification(playerid)
+{
+    if(IsPlayerConnected(playerid) && IsPlayerNearLumberjackPickup(playerid))
+    {
+        ShowLumberjackPickupNotif(playerid);
+    }
+}
+
+// Timer para verificar proximidad al pickup
+forward CheckLumberjackPickupProximity();
+public CheckLumberjackPickupProximity()
+{
+    for(new i = 0; i < MAX_PLAYERS; i++)
+    {
+        if(!IsPlayerConnected(i)) continue;
+        
+        if(IsPlayerNearLumberjackPickup(i))
+        {
+            // Solo mostrar si no tiene notificación activa
+            if(LumberjackPlayer[i][pickupNotification] == -1)
+            {
+                ShowLumberjackPickupNotif(i);
+            }
+        }
+        else
+        {
+            if(LumberjackPlayer[i][pickupNotification] != -1)
+            {
+                HideLumberjackPickupNotif(i);
+            }
+        }
+    }
 }
 
 // Verificar si el jugador está cerca de un árbol
@@ -138,8 +193,14 @@ stock StartLumberjackMinigame(playerid)
     LumberjackPlayer[playerid][isActive] = true;
     LumberjackPlayer[playerid][treesCut] = 0;
     
+    // Actualizar notificación si está cerca del pickup
+    if(IsPlayerNearLumberjackPickup(playerid))
+    {
+        ShowLumberjackPickupNotif(playerid);
+    }
+    
     SendClientMessage(playerid, COLOR_GRAD1, "¡Trabajo de talador iniciado! Acércate a los árboles y usa /talar para cortarlos.");
-    SendClientMessage(playerid, COLOR_GRAD2, "Presiona 2 nuevamente o usa /cancelarlbj para cancelar el trabajo.");
+    SendClientMessage(playerid, COLOR_GRAD2, "Presiona Y para iniciar o N para cancelar (estando en el pickup) o usa /cancelarlbj.");
     
     return 1;
 }
@@ -153,11 +214,21 @@ stock CancelLumberjackMinigame(playerid)
         return 0;
     }
     
+    // Ocultar notificación actual antes de resetear
+    HideLumberjackPickupNotif(playerid);
+    
     // Detener timer si está cortando
     if(LumberjackPlayer[playerid][cuttingTimer] != 0)
     {
         KillTimer(LumberjackPlayer[playerid][cuttingTimer]);
         LumberjackPlayer[playerid][cuttingTimer] = 0;
+    }
+    
+    // Ocultar TextDraw de corte si existe
+    if(LumberjackPlayer[playerid][cuttingTextDraw] != PlayerText:INVALID_TEXT_DRAW)
+    {
+        PlayerTextDrawDestroy(playerid, LumberjackPlayer[playerid][cuttingTextDraw]);
+        LumberjackPlayer[playerid][cuttingTextDraw] = PlayerText:INVALID_TEXT_DRAW;
     }
     
     // Descongelar al jugador
@@ -182,6 +253,12 @@ stock CancelLumberjackMinigame(playerid)
     
     ResetLumberjackPlayer(playerid);
     
+    // Actualizar notificación con delay si está cerca del pickup
+    if(IsPlayerNearLumberjackPickup(playerid))
+    {
+        SetTimerEx("UpdateLumberjackNotification", 100, false, "i", playerid);
+    }
+    
     SendClientMessage(playerid, COLOR_FADE3, "Trabajo de talador cancelado.");
     return 1;
 }
@@ -190,6 +267,9 @@ stock CancelLumberjackMinigame(playerid)
 stock FinishLumberjackMinigame(playerid)
 {
     if(!LumberjackPlayer[playerid][isActive]) return 0;
+    
+    // Ocultar notificación actual antes de resetear
+    HideLumberjackPickupNotif(playerid);
     
     // Limpiar recursos
     for(new i = 0; i < MAX_LUMBERJACK_TREES; i++)
@@ -206,6 +286,12 @@ stock FinishLumberjackMinigame(playerid)
     GivePlayerMoney(playerid, reward);
     
     ResetLumberjackPlayer(playerid);
+    
+    // Actualizar notificación con delay si está cerca del pickup
+    if(IsPlayerNearLumberjackPickup(playerid))
+    {
+        SetTimerEx("UpdateLumberjackNotification", 100, false, "i", playerid);
+    }
     
     SendClientMessage(playerid, COLOR_GRAD1, "¡Haz finalizado el minijuego!");
     SendClientMessage(playerid, COLOR_GRAD2, "Recompensa recibida: $%d", reward);
@@ -224,7 +310,26 @@ public LumberjackCuttingTimer(playerid, seconds)
     
     if(seconds > 0)
     {
-        GameTextForPlayer(playerid, va_return("Espera %d segundos para talar el arbol...", seconds), 1000, 17);
+        // Crear TextDraw personalizado para el contador
+        new text[64];
+        format(text, sizeof(text), "Espera %d segundos para talar el arbol.", seconds);
+        
+        if(LumberjackPlayer[playerid][cuttingTextDraw] != PlayerText:INVALID_TEXT_DRAW)
+        {
+            PlayerTextDrawDestroy(playerid, LumberjackPlayer[playerid][cuttingTextDraw]);
+        }
+        
+        LumberjackPlayer[playerid][cuttingTextDraw] = CreatePlayerTextDraw(playerid, 325.000, 369.000, text);
+        PlayerTextDrawLetterSize(playerid, LumberjackPlayer[playerid][cuttingTextDraw], 0.300, 1.500);
+        PlayerTextDrawAlignment(playerid, LumberjackPlayer[playerid][cuttingTextDraw], 2);
+        PlayerTextDrawColor(playerid, LumberjackPlayer[playerid][cuttingTextDraw], -1);
+        PlayerTextDrawSetShadow(playerid, LumberjackPlayer[playerid][cuttingTextDraw], 1);
+        PlayerTextDrawSetOutline(playerid, LumberjackPlayer[playerid][cuttingTextDraw], 1);
+        PlayerTextDrawBackgroundColor(playerid, LumberjackPlayer[playerid][cuttingTextDraw], 150);
+        PlayerTextDrawFont(playerid, LumberjackPlayer[playerid][cuttingTextDraw], 1);
+        PlayerTextDrawSetProportional(playerid, LumberjackPlayer[playerid][cuttingTextDraw], true);
+        PlayerTextDrawShow(playerid, LumberjackPlayer[playerid][cuttingTextDraw]);
+        
         LumberjackPlayer[playerid][cuttingTimer] = SetTimerEx("LumberjackCuttingTimer", 1000, false, "ii", playerid, seconds - 1);
     }
     else
@@ -249,6 +354,13 @@ public LumberjackCuttingTimer(playerid, seconds)
         LumberjackPlayer[playerid][isCutting] = false;
         LumberjackPlayer[playerid][currentTree] = -1;
         LumberjackPlayer[playerid][cuttingTimer] = 0;
+        
+        // Ocultar TextDraw de corte
+        if(LumberjackPlayer[playerid][cuttingTextDraw] != PlayerText:INVALID_TEXT_DRAW)
+        {
+            PlayerTextDrawDestroy(playerid, LumberjackPlayer[playerid][cuttingTextDraw]);
+            LumberjackPlayer[playerid][cuttingTextDraw] = PlayerText:INVALID_TEXT_DRAW;
+        }
         
         // Descongelar al jugador
         TogglePlayerControllable(playerid, 1);
@@ -282,6 +394,18 @@ CMD:iniciarlbj(playerid, params[])
 // Comando para cancelar el trabajo
 CMD:cancelarlbj(playerid, params[])
 {
+    if(!LumberjackPlayer[playerid][isActive])
+    {
+        SendClientMessage(playerid, COLOR_FADE3, "No tienes el trabajo de talador activo.");
+        return 1;
+    }
+    
+    if(!IsPlayerNearLumberjackPickup(playerid))
+    {
+        SendClientMessage(playerid, COLOR_FADE3, "Debes estar cerca del pickup para cancelar el trabajo de talador.");
+        return 1;
+    }
+    
     CancelLumberjackMinigame(playerid);
     return 1;
 }
@@ -298,6 +422,14 @@ CMD:talar(playerid, params[])
     if(LumberjackPlayer[playerid][isCutting])
     {
         SendClientMessage(playerid, COLOR_FADE3, "Ya estás cortando un árbol.");
+        return 1;
+    }
+    
+    // Verificar si el jugador tiene una motosierra
+    new weapon = GetPlayerWeapon(playerid);
+    if(weapon != 9) // ID 9 es la motosierra (chainsaw)
+    {
+        SendClientMessage(playerid, COLOR_FADE3, "¿En serio piensas talar un árbol con las manos? Necesitas una motosierra.");
         return 1;
     }
     
@@ -326,40 +458,38 @@ CMD:talar(playerid, params[])
 // Callback para el sistema de pickups
 stock Lumberjack_OnPlayerPickUpPickup(playerid, pickupid)
 {
-    if(pickupid == LumberjackPickup)
-    {
-        if(LumberjackPlayer[playerid][isActive])
-        {
-            SendClientMessage(playerid, COLOR_GRAD2, "Presiona 2 para cancelar el trabajo de talador.");
-        }
-        else
-        {
-            SendClientMessage(playerid, COLOR_GRAD2, "Presiona 2 para iniciar el trabajo de talador.");
-        }
-        return 1;
-    }
+    #pragma unused playerid, pickupid
+    // El sistema de notificaciones se maneja automáticamente con el timer
     return 0;
 }
 
 // Callback para el sistema de teclas
-stock Lumberjack_OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
+stock Lumberjack_OnPlayerKeyStateChg(playerid, newkeys, oldkeys)
 {
     #pragma unused oldkeys
-    if(newkeys & KEY_SUBMISSION) // Tecla 2
+    
+    // Verificar si está cerca del pickup
+    if(IsPlayerNearLumberjackPickup(playerid))
     {
-        if(IsPlayerNearLumberjackPickup(playerid))
+        if(newkeys & KEY_YES) // Tecla Y
         {
-            if(LumberjackPlayer[playerid][isActive])
-            {
-                CancelLumberjackMinigame(playerid);
-            }
-            else
+            if(!LumberjackPlayer[playerid][isActive])
             {
                 StartLumberjackMinigame(playerid);
             }
             return 1;
         }
+        
+        if(newkeys & KEY_NO) // Tecla N
+        {
+            if(LumberjackPlayer[playerid][isActive])
+            {
+                CancelLumberjackMinigame(playerid);
+            }
+            return 1;
+        }
     }
+    
     return 0;
 }
 
@@ -367,6 +497,10 @@ stock Lumberjack_OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 stock Lumberjack_OnPlayerDisconnect(playerid, reason)
 {
     #pragma unused reason
+    
+    // Ocultar notificación del pickup
+    HideLumberjackPickupNotif(playerid);
+    
     if(LumberjackPlayer[playerid][isActive])
     {
         CancelLumberjackMinigame(playerid);

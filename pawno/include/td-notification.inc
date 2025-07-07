@@ -88,12 +88,12 @@
     #endif
 #else
     #define MAX_TDN 6
-    #define TDN_POS_X 497.000000
-    #define TDN_POS_Y 130.000000
+    #define TDN_POS_X 20.000000
+    #define TDN_POS_Y 180.000000
     #define TDN_FONT 1
     #define TDN_LETTER_SIZE_X 0.250000
     #define TDN_LETTER_SIZE_Y 1.350000
-    #define TDN_SIZE 112.000000
+    #define TDN_SIZE 119.900000
     #define TDN_COLOR 0xFFFFFFFF
     #define TDN_COLOR_BOX 175
     #define TDN_PROPORTIONAL 1
