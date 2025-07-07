@@ -19,19 +19,78 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+//#include "utils/defines"
 #include "features/player/spawn"
 #include "features/player/minigame-lumberjack/header"
 
 CMD:ayuda(playerid, params[])
 {
-    SendClientMessage(playerid, COLOR_YELLOW, "----------------------Comandos disponibles------------------------");
-    SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Comandos de teleport: /jetpack, /irpos, /cj, /idlewood, /ls, /lv, /area51, /ap");
-    SendClientMessage(playerid, COLOR_DARKYELLOW, "Comandos de animación: /anims, /pararanim");
-    SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Comandos de objetos: /crearobjeto, /editarobjeto, /eliminarobjeto");
-    SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Comandos de objetos: /listarobjetos, /irobjeto, /objetostats");
-    SendClientMessage(playerid, COLOR_DARKYELLOW, "Comandos de coordenadas: /marcarc(oord), /listarc(oords)");
-    SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Comandos de utilidades: /ropa, /hora, /clima, /crearveh, /creararma");
-    SendClientMessage(playerid, COLOR_DARKYELLOW, "Comandos de chat: /limpiarchat");
-    SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Minijuego talador: /iniciarlbj, /cancelarlbj, /talar");
+    if(isnull(params))
+    {
+        SendClientMessage(playerid, COLOR_GRAD1, "Uso: /ayuda [opción]");
+        SendClientMessage(playerid, COLOR_WHITE, "Opción: (teleport, animacion, objetos)");
+        SendClientMessage(playerid, COLOR_WHITE, "Opción: (coordenadas, utilidades, chat)");
+        SendClientMessage(playerid, COLOR_WHITE, "Opción: (skin, talador)");
+        return 1;
+    }
+    
+    if(!strcmp(params, "teleport", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA TELEPORT _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[TELEPORT]{b2ffcd}: /jetpack /irpos /cj /idlewood /ls /lv /area51 /ap");
+        return 1;
+    }
+    
+    if(!strcmp(params, "animacion", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA ANIMACIÓN _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[ANIMACIÓN]{b2ffcd}: /anims /pararanim");
+        return 1;
+    }
+    
+    if(!strcmp(params, "objetos", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA OBJETOS _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[OBJETOS]{b2ffcd}: /crearobjeto /editarobjeto /eliminarobjeto");
+        SendClientMessage(playerid, COLOR_RADIO2, "[OBJETOS]{b2ffcd}: /listarobjetos /irobjeto /objetostats");
+        return 1;
+    }
+    
+    if(!strcmp(params, "coordenadas", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA COORDENADAS _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[COORDENADAS]{b2ffcd}: /marcarc /listarc");
+        return 1;
+    }
+    
+    if(!strcmp(params, "utilidades", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA UTILIDADES _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[UTILIDADES]{b2ffcd}: /ropa /hora /clima /crearveh /creararma");
+        return 1;
+    }
+    
+    if(!strcmp(params, "chat", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA CHAT _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[CHAT]{b2ffcd}: /limpiarchat");
+        return 1;
+    }
+    
+    if(!strcmp(params, "skin", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA SKIN _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[SKIN]{b2ffcd}: /skin");
+        return 1;
+    }
+    
+    if(!strcmp(params, "talador", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA TALADOR _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[TALADOR]{b2ffcd}: /iniciarlbj /cancelarlbj /talar");
+        return 1;
+    }
+    
+    SendClientMessage(playerid, COLOR_FADE3, "Opción no válida. Usa /ayuda para ver las opciones disponibles.");
     return 1;
 }
