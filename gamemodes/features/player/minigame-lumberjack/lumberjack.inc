@@ -94,11 +94,11 @@ stock ShowLumberjackPickupNotif(playerid)
     new message[128];
     if(LumberjackPlayer[playerid][isActive])
     {
-        format(message, sizeof(message), "Presiona N para cancelar el trabajo de talador.");
+        format(message, sizeof(message), "Presiona N para abandonar tu turno de trabajo.");
     }
     else
     {
-        format(message, sizeof(message), "Presiona Y para iniciar el trabajo de talador.");
+        format(message, sizeof(message), "Presiona Y para registrarte como talador.");
     }
     
     LumberjackPlayer[playerid][pickupNotification] = CallLocalFunction("ShowTDN_Manual", "is", playerid, message);
@@ -173,7 +173,7 @@ stock StartLumberjackMinigame(playerid)
 {
     if(LumberjackPlayer[playerid][isActive])
     {
-        SendClientMessage(playerid, COLOR_FADE3, "Ya tienes el trabajo de talador activo.");
+        SendClientMessage(playerid, COLOR_FADE3, "Ya tienes un trabajo activo como talador. Termina tu turno actual primero.");
         return 0;
     }
     
@@ -199,8 +199,8 @@ stock StartLumberjackMinigame(playerid)
         ShowLumberjackPickupNotif(playerid);
     }
     
-    SendClientMessage(playerid, COLOR_GRAD1, "¡Trabajo de talador iniciado! Acércate a los árboles y usa /talar para cortarlos.");
-    SendClientMessage(playerid, COLOR_GRAD2, "Presiona Y para iniciar o N para cancelar (estando en el pickup) o usa /cancelarlbj.");
+    SendClientMessage(playerid, COLOR_GREEN, "Has comenzado tu jornada como talador.");
+    SendClientMessage(playerid, COLOR_GREEN, "Tienes que talar todos los arboles que aparecen en el minimapa.");
     
     return 1;
 }
@@ -210,7 +210,7 @@ stock CancelLumberjackMinigame(playerid)
 {
     if(!LumberjackPlayer[playerid][isActive])
     {
-        SendClientMessage(playerid, COLOR_FADE3, "No tienes el trabajo de talador activo.");
+        SendClientMessage(playerid, COLOR_FADE3, "No tienes ningún trabajo activo como talador en este momento.");
         return 0;
     }
     
@@ -259,7 +259,7 @@ stock CancelLumberjackMinigame(playerid)
         SetTimerEx("UpdateLumberjackNotification", 100, false, "i", playerid);
     }
     
-    SendClientMessage(playerid, COLOR_FADE3, "Trabajo de talador cancelado.");
+    SendClientMessage(playerid, COLOR_FADE3, "Abandonaste tu turno de talador.");
     return 1;
 }
 
@@ -293,8 +293,7 @@ stock FinishLumberjackMinigame(playerid)
         SetTimerEx("UpdateLumberjackNotification", 100, false, "i", playerid);
     }
     
-    SendClientMessage(playerid, COLOR_GRAD1, "¡Haz finalizado el minijuego!");
-    SendClientMessage(playerid, COLOR_GRAD2, "Recompensa recibida: $%d", reward);
+    SendClientMessage(playerid, COLOR_LIGHTGREEN, "¡Recolectaste $%d, por todos los arboles!", reward);
     
     return 1;
 }
@@ -312,7 +311,7 @@ public LumberjackCuttingTimer(playerid, seconds)
     {
         // Crear TextDraw personalizado para el contador
         new text[64];
-        format(text, sizeof(text), "Espera %d segundos para talar el arbol.", seconds);
+        format(text, sizeof(text), "Espera %d segundos hasta talar el arbol.", seconds);
         
         if(LumberjackPlayer[playerid][cuttingTextDraw] != PlayerText:INVALID_TEXT_DRAW)
         {
@@ -366,7 +365,7 @@ public LumberjackCuttingTimer(playerid, seconds)
         TogglePlayerControllable(playerid, 1);
         ClearAnimations(playerid);
         
-        SendClientMessage(playerid, COLOR_GRAD1, "¡Árbol cortado! (%d/%d)", LumberjackPlayer[playerid][treesCut], MAX_LUMBERJACK_TREES);
+        // SendClientMessage(playerid, COLOR_GRAD1, "Progreso: (%d/%d)", LumberjackPlayer[playerid][treesCut], MAX_LUMBERJACK_TREES);
         
         // Verificar si terminó todos los árboles
         if(LumberjackPlayer[playerid][treesCut] >= MAX_LUMBERJACK_TREES)
@@ -383,7 +382,7 @@ CMD:iniciarlbj(playerid, params[])
 {
     if(!IsPlayerNearLumberjackPickup(playerid))
     {
-        SendClientMessage(playerid, COLOR_FADE3, "Debes estar cerca del pickup para iniciar el trabajo de talador.");
+        SendClientMessage(playerid, COLOR_FADE3, "Debes estar cerca del punto para poder comenzar a talar arboles.");
         return 1;
     }
     
@@ -396,13 +395,13 @@ CMD:cancelarlbj(playerid, params[])
 {
     if(!LumberjackPlayer[playerid][isActive])
     {
-        SendClientMessage(playerid, COLOR_FADE3, "No tienes el trabajo de talador activo.");
+        SendClientMessage(playerid, COLOR_FADE3, "No tienes ningún turno activo de talador para cancelar.");
         return 1;
     }
     
     if(!IsPlayerNearLumberjackPickup(playerid))
     {
-        SendClientMessage(playerid, COLOR_FADE3, "Debes estar cerca del pickup para cancelar el trabajo de talador.");
+        SendClientMessage(playerid, COLOR_FADE3, "Debes regresar al punto para poder abandonar tu turno.");
         return 1;
     }
     
@@ -415,13 +414,13 @@ CMD:talar(playerid, params[])
 {
     if(!LumberjackPlayer[playerid][isActive])
     {
-        SendClientMessage(playerid, COLOR_FADE3, "No tienes el trabajo de talador activo.");
+        SendClientMessage(playerid, COLOR_FADE3, "No tienes el trabajo de talador activo en este momento.");
         return 1;
     }
     
     if(LumberjackPlayer[playerid][isCutting])
     {
-        SendClientMessage(playerid, COLOR_FADE3, "Ya estás cortando un árbol.");
+        SendClientMessage(playerid, COLOR_FADE3, "Ya estás talando un árbol desesperado culiao.");
         return 1;
     }
     
@@ -429,14 +428,14 @@ CMD:talar(playerid, params[])
     new weapon = GetPlayerWeapon(playerid);
     if(weapon != 9) // ID 9 es la motosierra (chainsaw)
     {
-        SendClientMessage(playerid, COLOR_FADE3, "¿En serio piensas talar un árbol con las manos? Necesitas una motosierra.");
+        SendClientMessage(playerid, COLOR_DARKRED, "QUIERES TALAR UN ARBOL CON LA MANO CABEZA DE VERGA. Necesitas una motosierra en tu mano derecha.");
         return 1;
     }
     
     new treeIndex = GetNearestTree(playerid);
     if(treeIndex == -1)
     {
-        SendClientMessage(playerid, COLOR_FADE3, "No hay árboles cerca para talar.");
+        SendClientMessage(playerid, COLOR_FADE3, "* No hay árboles cerca de tu posición.");
         return 1;
     }
     
@@ -451,7 +450,7 @@ CMD:talar(playerid, params[])
     // Iniciar el timer
     LumberjackPlayer[playerid][cuttingTimer] = SetTimerEx("LumberjackCuttingTimer", 1000, false, "ii", playerid, LUMBERJACK_CUTTING_TIME);
     
-    SendClientMessage(playerid, COLOR_GRAD1, "Cortando árbol... ¡No te muevas!");
+    //SendClientMessage(playerid, COLOR_GRAD1, "* Enciendes la motosierra y comienzas a cortar el árbol. ¡Mantente quieto!");
     return 1;
 }
 
