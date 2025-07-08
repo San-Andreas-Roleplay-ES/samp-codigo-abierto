@@ -28,9 +28,9 @@ CMD:ayuda(playerid, params[])
     if(isnull(params))
     {
         SendClientMessage(playerid, COLOR_GRAD1, "Uso: /ayuda [opción]");
-        SendClientMessage(playerid, COLOR_WHITE, "Opción: (teleport, animacion, objetos)");
-        SendClientMessage(playerid, COLOR_WHITE, "Opción: (coordenadas, utilidades, chat)");
-        SendClientMessage(playerid, COLOR_WHITE, "Opción: (skin, talador)");
+        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (teleport, animacion, objetos)");
+        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (coordenadas, utilidades, chat)");
+        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (skin, talador)");
         return 1;
     }
     
