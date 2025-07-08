@@ -20,6 +20,7 @@
 // SOFTWARE.
 
 #pragma warning disable 239 // ignore warning 239: literal array/string passed to a non-const parameter
+#pragma warning disable 204 // ignore warning 204: function with no return value
 
 #include <a_samp>
 #include <a_mysql>

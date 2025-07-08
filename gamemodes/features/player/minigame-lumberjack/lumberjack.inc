@@ -151,6 +151,12 @@ stock GetNearestTree(playerid)
 
 stock StartLumberjackMinigame(playerid)
 {
+    if(IsPlayerInAnyVehicle(playerid))
+    {
+        SendClientMessage(playerid, COLOR_FADE3, "No puedes iniciar el trabajo de talador mientras estás en un vehículo.");
+        return 0;
+    }
+    
     if(LumberjackPlayer[playerid][isActive])
     {
         SendClientMessage(playerid, COLOR_FADE3, "Ya tienes un trabajo activo como talador. Termina tu turno actual primero.");
@@ -184,6 +190,12 @@ stock StartLumberjackMinigame(playerid)
 
 stock CancelLumberjackMinigame(playerid)
 {
+    if(IsPlayerInAnyVehicle(playerid))
+    {
+        SendClientMessage(playerid, COLOR_FADE3, "No puedes cancelar el trabajo de talador mientras estás en un vehículo.");
+        return 0;
+    }
+    
     if(!LumberjackPlayer[playerid][isActive])
     {
         SendClientMessage(playerid, COLOR_FADE3, "No tienes ningún trabajo activo como talador en este momento.");
@@ -337,6 +349,12 @@ public LumberjackCuttingTimer(playerid, seconds)
 
 CMD:iniciarlbj(playerid, params[])
 {
+    if(IsPlayerInAnyVehicle(playerid))
+    {
+        SendClientMessage(playerid, COLOR_FADE3, "No puedes iniciar el trabajo de talador mientras estás en un vehículo.");
+        return 1;
+    }
+    
     if(!IsPlayerNearLumberjackPickup(playerid))
     {
         SendClientMessage(playerid, COLOR_FADE3, "Debes estar cerca del punto para poder comenzar a talar arboles.");
@@ -349,6 +367,12 @@ CMD:iniciarlbj(playerid, params[])
 
 CMD:cancelarlbj(playerid, params[])
 {
+    if(IsPlayerInAnyVehicle(playerid))
+    {
+        SendClientMessage(playerid, COLOR_FADE3, "No puedes cancelar el trabajo de talador mientras estás en un vehículo.");
+        return 1;
+    }
+    
     if(!LumberjackPlayer[playerid][isActive])
     {
         SendClientMessage(playerid, COLOR_FADE3, "No tienes ningún turno activo de talador para cancelar.");
@@ -367,6 +391,12 @@ CMD:cancelarlbj(playerid, params[])
 
 CMD:talar(playerid, params[])
 {
+    if(IsPlayerInAnyVehicle(playerid))
+    {
+        SendClientMessage(playerid, COLOR_FADE3, "No puedes talar árboles mientras estás en un vehículo.");
+        return 1;
+    }
+    
     if(!LumberjackPlayer[playerid][isActive])
     {
         SendClientMessage(playerid, COLOR_FADE3, "No tienes el trabajo de talador activo en este momento.");
@@ -419,6 +449,12 @@ stock Lumberjack_OnPlayerKeyStateChg(playerid, newkeys, oldkeys)
     {
         if(newkeys & KEY_YES) // Tecla Y
         {
+            if(IsPlayerInAnyVehicle(playerid))
+            {
+                SendClientMessage(playerid, COLOR_FADE3, "No puedes iniciar el trabajo de talador mientras estás en un vehículo.");
+                return 1;
+            }
+            
             if(!LumberjackPlayer[playerid][isActive])
             {
                 StartLumberjackMinigame(playerid);
@@ -428,6 +464,12 @@ stock Lumberjack_OnPlayerKeyStateChg(playerid, newkeys, oldkeys)
         
         if(newkeys & KEY_NO) // Tecla N
         {
+            if(IsPlayerInAnyVehicle(playerid))
+            {
+                SendClientMessage(playerid, COLOR_FADE3, "No puedes cancelar el trabajo de talador mientras estás en un vehículo.");
+                return 1;
+            }
+            
             if(LumberjackPlayer[playerid][isActive])
             {
                 CancelLumberjackMinigame(playerid);
