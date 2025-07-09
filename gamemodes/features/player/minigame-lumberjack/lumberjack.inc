@@ -44,7 +44,7 @@ stock InitLumberjackSystem()
     
     SetTimer("CheckLumberjackPickupProximity", 1000, true);
     
-    print("[LumberjackSystem] Sistema de talador de árboles inicializado.");
+    print("[LumberjackSystem] Sistema de talador de árboles inicializado.\n");
 }
 
 stock ResetLumberjackPlayer(playerid)

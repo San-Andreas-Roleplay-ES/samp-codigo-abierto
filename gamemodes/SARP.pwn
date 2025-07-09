@@ -94,7 +94,6 @@ public OnGameModeInit()
 	AddPlayerClassEx(8, 285, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	AddPlayerClassEx(9, 287, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	
-	// Inicializar sistema de minijuego talador
 	Lumberjack_OnGameModeInit();
 	
 	return 1;
