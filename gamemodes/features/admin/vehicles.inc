@@ -148,7 +148,7 @@ CMD:dardlvehiculo(playerid, params[])
 }
 
 alias:irvehiculointerior("irvehin")
-CMD:irvehiculodentro(playerid, params[])
+CMD:irvehiculointerior(playerid, params[])
 {
     new vehicleid;
     if(sscanf(params, "d", vehicleid))
