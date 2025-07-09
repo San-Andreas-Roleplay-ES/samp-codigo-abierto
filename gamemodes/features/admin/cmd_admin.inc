@@ -25,6 +25,7 @@
 #include "features/admin/teleports.inc"
 #include "features/admin/coordenadas.inc"
 #include "features/admin/anims.inc"
+#include "features/admin/vehicles.inc"
 
 CMD:hora(playerid, params[])
 {
@@ -49,30 +50,6 @@ CMD:clima(playerid, params[])
         return SendClientMessage(playerid, COLOR_FADE3, "Clima inválido.");
 
     SetWeather(weatherid);
-    return 1;
-}
-
-CMD:crearveh(playerid, params[])
-{
-    new vehiclemodelid, color1, color2, sirena;
-    if(sscanf(params, "dddD(0)", vehiclemodelid, color1, color2, sirena))
-        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /crearveh [vehicleid] [color1] [color2] [sirena (opcional)]");
-
-    if(vehiclemodelid < 400 || vehiclemodelid > 611 ||
-        vehiclemodelid == 449 || vehiclemodelid == 537 || vehiclemodelid == 538 ||
-        vehiclemodelid == 569 || vehiclemodelid == 570 || vehiclemodelid == 590)
-    {
-        return SendClientMessage(playerid, COLOR_FADE3, "Modelo de vehículo inválido.");
-    }
-
-    new Float:x, Float:y, Float:z, Float:a;
-    GetPlayerPos(playerid, x, y, z);
-    GetPlayerFacingAngle(playerid, a);
-
-    new sampvehicleid = CreateVehicle(vehiclemodelid, x, y, z, a, color1, color2, sirena == 1 ? 0 : -1);
-    PutPlayerInVehicle(playerid, sampvehicleid, 0);
-
-    SendClientMessage(playerid, COLOR_GRAD2, va_return("Vehículo creado con: Model ID: %d | Samp ID: %d ", vehiclemodelid, sampvehicleid));
     return 1;
 }
 

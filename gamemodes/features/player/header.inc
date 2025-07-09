@@ -30,7 +30,16 @@ CMD:ayuda(playerid, params[])
         SendClientMessage(playerid, COLOR_GRAD1, "Uso: /ayuda [opción]");
         SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (teleport, animacion, objetos)");
         SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (coordenadas, utilidades, chat)");
-        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (skin, talador)");
+        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (vehiculos, skin, talador)");
+        return 1;
+    }
+
+    if(!strcmp(params, "vehiculos", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA VEHICULOS _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[VEHICULOS]{b2ffcd}: /crearveh(iculo) /borrarveh(iculo) /irveh(iculo)");
+        SendClientMessage(playerid, COLOR_RADIO2, "[VEHICULOS]{b2ffcd}: /traerveh(iculo) /repararveh(iculo) /dardlveh(iculo)");
+        SendClientMessage(playerid, COLOR_RADIO2, "[VEHICULOS]{b2ffcd}: /irvehin /traervehin");
         return 1;
     }
     
@@ -51,22 +60,22 @@ CMD:ayuda(playerid, params[])
     if(!strcmp(params, "objetos", true))
     {
         SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA OBJETOS _______________ ]");
-        SendClientMessage(playerid, COLOR_RADIO2, "[OBJETOS]{b2ffcd}: /crearobjeto /editarobjeto /eliminarobjeto");
-        SendClientMessage(playerid, COLOR_RADIO2, "[OBJETOS]{b2ffcd}: /listarobjetos /irobjeto /objetostats");
+        SendClientMessage(playerid, COLOR_RADIO2, "[OBJETOS]{b2ffcd}: /crearobj(eto) /editarobj(eto) /eliminarobj(eto)");
+        SendClientMessage(playerid, COLOR_RADIO2, "[OBJETOS]{b2ffcd}: /listarobjetos /irobj(eto) /objetostats");
         return 1;
     }
     
     if(!strcmp(params, "coordenadas", true))
     {
         SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA COORDENADAS _______________ ]");
-        SendClientMessage(playerid, COLOR_RADIO2, "[COORDENADAS]{b2ffcd}: /marcarc /listarc");
+        SendClientMessage(playerid, COLOR_RADIO2, "[COORDENADAS]{b2ffcd}: /marcarc(oord) /listarc(oords)");
         return 1;
     }
     
     if(!strcmp(params, "utilidades", true))
     {
         SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA UTILIDADES _______________ ]");
-        SendClientMessage(playerid, COLOR_RADIO2, "[UTILIDADES]{b2ffcd}: /ropa /hora /clima /crearveh /creararma");
+        SendClientMessage(playerid, COLOR_RADIO2, "[UTILIDADES]{b2ffcd}: /ropa /hora /clima /creararma");
         return 1;
     }
     
