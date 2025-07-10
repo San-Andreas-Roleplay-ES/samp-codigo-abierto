@@ -211,6 +211,6 @@ CMD:traervehiculointerior(playerid, params[])
 
     PutPlayerInVehicle(playerid, vehicleid, 0);
 
-    SendClientMessage(playerid, COLOR_GRAD2, va_return("Vehículo ID %d traído y montado.", vehicleid));
+    // SendClientMessage(playerid, COLOR_GRAD2, va_return("Vehículo ID %d traído y montado.", vehicleid));
     return 1;
 }
