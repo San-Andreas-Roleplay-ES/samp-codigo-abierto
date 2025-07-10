@@ -37,9 +37,9 @@ CMD:ayuda(playerid, params[])
     if(!strcmp(params, "vehiculos", true))
     {
         SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA VEHICULOS _______________ ]");
-        SendClientMessage(playerid, COLOR_RADIO2, "[VEHICULOS]{b2ffcd}: /crearveh(iculo) /borrarveh(iculo) /irveh(iculo)");
-        SendClientMessage(playerid, COLOR_RADIO2, "[VEHICULOS]{b2ffcd}: /traerveh(iculo) /repararveh(iculo) /dardlveh(iculo)");
-        SendClientMessage(playerid, COLOR_RADIO2, "[VEHICULOS]{b2ffcd}: /irvehin /traervehin");
+        SendClientMessage(playerid, COLOR_RADIO2, "[VEHICULOS]{b2ffcd}: (/crearveh)iculo (/borrarveh)iculo (/irveh)iculo");
+        SendClientMessage(playerid, COLOR_RADIO2, "[VEHICULOS]{b2ffcd}: (/traerveh)iculo (/repararveh)iculo (/dardlveh)iculo");
+        SendClientMessage(playerid, COLOR_RADIO2, "[VEHICULOS]{b2ffcd}: /irvehin) /traervehin");
         return 1;
     }
     
@@ -60,15 +60,15 @@ CMD:ayuda(playerid, params[])
     if(!strcmp(params, "objetos", true))
     {
         SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA OBJETOS _______________ ]");
-        SendClientMessage(playerid, COLOR_RADIO2, "[OBJETOS]{b2ffcd}: /crearobj(eto) /editarobj(eto) /eliminarobj(eto)");
-        SendClientMessage(playerid, COLOR_RADIO2, "[OBJETOS]{b2ffcd}: /listarobjetos /irobj(eto) /objetostats");
+        SendClientMessage(playerid, COLOR_RADIO2, "[OBJETOS]{b2ffcd}: (/crearobj)eto (/editarobj)eto (/eliminarobj)eto");
+        SendClientMessage(playerid, COLOR_RADIO2, "[OBJETOS]{b2ffcd}: /listarobjetos (/irobj)eto /objetostats");
         return 1;
     }
     
     if(!strcmp(params, "coordenadas", true))
     {
         SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA COORDENADAS _______________ ]");
-        SendClientMessage(playerid, COLOR_RADIO2, "[COORDENADAS]{b2ffcd}: /marcarc(oord) /listarc(oords)");
+        SendClientMessage(playerid, COLOR_RADIO2, "[COORDENADAS]{b2ffcd}: (/marcarc)oord (/listarc)oords");
         return 1;
     }
     
