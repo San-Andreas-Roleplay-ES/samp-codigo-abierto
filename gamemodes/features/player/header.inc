@@ -21,6 +21,7 @@
 
 //#include "utils/defines"
 #include "features/player/spawn"
+#include "features/player/chat"
 #include "features/player/minigame-lumberjack/header"
 
 CMD:ayuda(playerid, params[])
@@ -82,7 +83,8 @@ CMD:ayuda(playerid, params[])
     if(!strcmp(params, "chat", true))
     {
         SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA CHAT _______________ ]");
-        SendClientMessage(playerid, COLOR_RADIO2, "[CHAT]{b2ffcd}: /limpiarchat");
+        SendClientMessage(playerid, COLOR_RADIO2, "[CHAT]{b2ffcd}: /me /ame /do (/c)ercano /b");
+        SendClientMessage(playerid, COLOR_RADIO2, "[CHAT]{b2ffcd}: (/gr)itar /limpiarchat");
         return 1;
     }
     

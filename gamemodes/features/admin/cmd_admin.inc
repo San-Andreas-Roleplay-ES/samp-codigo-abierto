@@ -79,15 +79,6 @@ CMD:jetpack(playerid, params[])
     return 1;
 }
 
-CMD:limpiarchat(playerid, params[])
-{
-    for(new i = 0; i < 50; i++)
-    {
-        SendClientMessage(playerid, -1, " ");
-    }
-    return 1;
-}
-
 alias:ropa("skin")
 CMD:ropa(playerid, params[])
 {

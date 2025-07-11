@@ -82,7 +82,7 @@ main()
 public OnGameModeInit()
 {
 	SendRconCommand("hostname "SERVER_NAME" | "SERVER_URL" [Código abierto]");
-	SetGameModeText("Test Server");
+	SetGameModeText("Servidor de Prueba");
 
 	AddPlayerClassEx(1, 102, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	AddPlayerClassEx(2, 106, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
