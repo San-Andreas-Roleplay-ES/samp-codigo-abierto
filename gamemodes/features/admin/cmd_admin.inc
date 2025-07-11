@@ -92,3 +92,118 @@ CMD:ropa(playerid, params[])
     SetPlayerSkin(playerid, skinid);
     return 1;
 }
+
+CMD:ir(playerid, params[])
+{
+    new targetid;
+    if(sscanf(params, "u", targetid))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /ir [playerid]");
+
+    if(!IsPlayerConnected(targetid))
+        return SendClientMessage(playerid, COLOR_FADE3, "El jugador no está conectado.");
+
+    if(targetid == playerid)
+        return SendClientMessage(playerid, COLOR_FADE3, "¿Qué quieres hacer panflín, bugear el sv?");
+
+    new Float:x, Float:y, Float:z;
+    GetPlayerPos(targetid, x, y, z);
+    
+    // Obtener Virtual World e Interior del objetivo
+    new targetVW = GetPlayerVirtualWorld(targetid);
+    new targetInterior = GetPlayerInterior(targetid);
+    
+    if(IsPlayerInAnyVehicle(playerid))
+    {
+        new vehicleid = GetPlayerVehicleID(playerid);
+        SetVehiclePos(vehicleid, x + 2.0, y, z);
+        SetVehicleVirtualWorld(vehicleid, targetVW);
+        LinkVehicleToInterior(vehicleid, targetInterior);
+    }
+    else
+    {
+        SetPlayerPos(playerid, x + 1.0, y, z + 1.0);
+    }
+    
+    // Actualizar Virtual World e Interior del jugador
+    SetPlayerVirtualWorld(playerid, targetVW);
+    SetPlayerInterior(playerid, targetInterior);
+
+    new string[128], targetname[MAX_PLAYER_NAME];
+    GetPlayerName(targetid, targetname, sizeof(targetname));
+    format(string, sizeof(string), "Te has teletransportado hacia %s (ID: %d).", targetname, targetid);
+    SendClientMessage(playerid, COLOR_GRAD2, string);
+    return 1;
+}
+
+CMD:traer(playerid, params[])
+{
+    new targetid;
+    if(sscanf(params, "u", targetid))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /traer [playerid]");
+
+    if(!IsPlayerConnected(targetid))
+        return SendClientMessage(playerid, COLOR_FADE3, "El jugador no está conectado.");
+
+    if(targetid == playerid)
+        return SendClientMessage(playerid, COLOR_FADE3, "¿Qué quieres hacer panflín, bugear el sv?");
+
+    new Float:x, Float:y, Float:z;
+    GetPlayerPos(playerid, x, y, z);
+    
+    // Obtener Virtual World e Interior del admin
+    new adminVW = GetPlayerVirtualWorld(playerid);
+    new adminInterior = GetPlayerInterior(playerid);
+    
+    if(IsPlayerInAnyVehicle(targetid))
+    {
+        new vehicleid = GetPlayerVehicleID(targetid);
+        SetVehiclePos(vehicleid, x + 2.0, y, z);
+        SetVehicleVirtualWorld(vehicleid, adminVW);
+        LinkVehicleToInterior(vehicleid, adminInterior);
+    }
+    else
+    {
+        SetPlayerPos(targetid, x + 1.0, y, z + 1.0);
+    }
+    
+    // Actualizar Virtual World e Interior del objetivo
+    SetPlayerVirtualWorld(targetid, adminVW);
+    SetPlayerInterior(targetid, adminInterior);
+
+    new string[128], targetname[MAX_PLAYER_NAME], adminname[MAX_PLAYER_NAME];
+    GetPlayerName(targetid, targetname, sizeof(targetname));
+    GetPlayerName(playerid, adminname, sizeof(adminname));
+    
+    format(string, sizeof(string), "Has traído a %s (ID: %d) hacia tu posición.", targetname, targetid);
+    SendClientMessage(playerid, COLOR_GRAD2, string);
+    
+    format(string, sizeof(string), "Has sido teletransportado por %s.", adminname);
+    SendClientMessage(targetid, COLOR_GRAD2, string);
+    return 1;
+}
+
+CMD:darskin(playerid, params[])
+{
+    new targetid, skinid;
+    if(sscanf(params, "ud", targetid, skinid))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /darskin [playerid] [skinid]");
+
+    if(!IsPlayerConnected(targetid))
+        return SendClientMessage(playerid, COLOR_FADE3, "El jugador no está conectado.");
+
+    if(skinid < 0 || skinid > 311)
+        return SendClientMessage(playerid, COLOR_FADE3, "ID de skin inválido (0-311).");
+
+    SetPlayerSkin(targetid, skinid);
+
+    new string[128], targetname[MAX_PLAYER_NAME], adminname[MAX_PLAYER_NAME];
+    GetPlayerName(targetid, targetname, sizeof(targetname));
+    GetPlayerName(playerid, adminname, sizeof(adminname));
+    
+    format(string, sizeof(string), "Has cambiado el skin de %s (ID: %d) al skin ID: %d", targetname, targetid, skinid);
+    SendClientMessage(playerid, COLOR_GRAD2, string);
+    
+    format(string, sizeof(string), "%s te ha cambiado el skin al ID: %d", adminname, skinid);
+    SendClientMessage(targetid, COLOR_GRAD2, string);
+    return 1;
+}

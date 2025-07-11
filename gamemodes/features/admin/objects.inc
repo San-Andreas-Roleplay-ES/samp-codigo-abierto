@@ -102,7 +102,7 @@ CMD:crearobjeto(playerid, params[])
     x += (3.0 * floatsin(-angle, degrees));
     y += (3.0 * floatcos(-angle, degrees));
 
-    new obj = CreatePlayerObject(playerid, modelid, x, y, z, 0.0, 0.0, 0.0);
+    new obj = CreateDynamicObject(modelid, x, y, z, 0.0, 0.0, 0.0);
     
     if(obj == INVALID_OBJECT_ID)
         return SendClientMessage(playerid, COLOR_FADE3, "Error al crear el objeto.");
@@ -122,7 +122,7 @@ CMD:crearobjeto(playerid, params[])
     playerCreatingObject[playerid] = true;
     playerEditingObjectID[playerid] = slot;
 
-    EditPlayerObject(playerid, obj);
+    EditDynamicObject(playerid, obj);
     
     SendClientMessage(playerid, COLOR_GRAD1, "Creando objeto modelo %d. Posiciónalo y presiona ENTER para guardar o ESC para cancelar.", modelid);
     return 1;
@@ -157,7 +157,7 @@ CMD:editarobjeto(playerid, params[])
     AdminObjects[slot][isBeingEdited] = true;
 
     playerEditingObjectID[playerid] = slot;
-    EditPlayerObject(playerid, AdminObjects[slot][objID]);
+    EditDynamicObject(playerid, AdminObjects[slot][objID]);
     
     SendClientMessage(playerid, COLOR_GRAD1, "Editando objeto modelo %d (ID interno: %d). Presiona ENTER para guardar o ESC para cancelar.", AdminObjects[slot][modelID], internalID);
     return 1;
@@ -182,7 +182,7 @@ CMD:eliminarobjeto(playerid, params[])
 
     new Float:x = AdminObjects[slot][objX], Float:y = AdminObjects[slot][objY], Float:z = AdminObjects[slot][objZ];
     new modelid = AdminObjects[slot][modelID];    
-    DestroyPlayerObject(AdminObjects[slot][creatorID], AdminObjects[slot][objID]);
+    DestroyDynamicObject(AdminObjects[slot][objID]);
     
     AdminObjects[slot][objID] = INVALID_OBJECT_ID;
     AdminObjects[slot][modelID] = 0;
@@ -237,10 +237,8 @@ CMD:listarobjetos(playerid, params[])
     return 1;
 }
 
-public OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ)
+hook OnPlayerEditDynamicObject(playerid, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ)
 {
-    if(!playerobject) return 1;
-    
     new slot = playerEditingObjectID[playerid];
     if(slot == -1) return 1;
     
@@ -257,6 +255,10 @@ public OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, 
             AdminObjects[slot][objRY] = fRotY;
             AdminObjects[slot][objRZ] = fRotZ;
             AdminObjects[slot][isBeingEdited] = false;
+            
+            // Actualizar posición del objeto dinámico para todos los jugadores
+            SetDynamicObjectPos(objectid, fX, fY, fZ);
+            SetDynamicObjectRot(objectid, fRotX, fRotY, fRotZ);
             
             if(playerCreatingObject[playerid])
             {
@@ -280,7 +282,7 @@ public OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, 
         {
             if(playerCreatingObject[playerid])
             {
-                DestroyPlayerObject(playerid, AdminObjects[slot][objID]);
+                DestroyDynamicObject(AdminObjects[slot][objID]);
                 AdminObjects[slot][objID] = INVALID_OBJECT_ID;
                 AdminObjects[slot][isValid] = false;
                 AdminObjects[slot][isBeingEdited] = false;
@@ -290,8 +292,8 @@ public OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, 
             }
             else
             {
-                SetPlayerObjectPos(playerid, objectid, AdminObjects[slot][originalX], AdminObjects[slot][originalY], AdminObjects[slot][originalZ]);
-                SetPlayerObjectRot(playerid, objectid, AdminObjects[slot][originalRX], AdminObjects[slot][originalRY], AdminObjects[slot][originalRZ]);
+                SetDynamicObjectPos(objectid, AdminObjects[slot][originalX], AdminObjects[slot][originalY], AdminObjects[slot][originalZ]);
+                SetDynamicObjectRot(objectid, AdminObjects[slot][originalRX], AdminObjects[slot][originalRY], AdminObjects[slot][originalRZ]);
                 
                 AdminObjects[slot][objX] = AdminObjects[slot][originalX];
                 AdminObjects[slot][objY] = AdminObjects[slot][originalY];
@@ -413,7 +415,7 @@ stock OnPlayerDisconnectObjectSystem(playerid)
         {
             if(AdminObjects[slot][objID] != INVALID_OBJECT_ID)
             {
-                DestroyPlayerObject(playerid, AdminObjects[slot][objID]);
+                DestroyDynamicObject(AdminObjects[slot][objID]);
             }
             AdminObjects[slot][objID] = INVALID_OBJECT_ID;
             AdminObjects[slot][isValid] = false;
@@ -423,9 +425,9 @@ stock OnPlayerDisconnectObjectSystem(playerid)
         {
             if(AdminObjects[slot][isValid])
             {
-                SetPlayerObjectPos(playerid, AdminObjects[slot][objID], 
+                SetDynamicObjectPos(AdminObjects[slot][objID], 
                                  AdminObjects[slot][originalX], AdminObjects[slot][originalY], AdminObjects[slot][originalZ]);
-                SetPlayerObjectRot(playerid, AdminObjects[slot][objID], 
+                SetDynamicObjectRot(AdminObjects[slot][objID], 
                                  AdminObjects[slot][originalRX], AdminObjects[slot][originalRY], AdminObjects[slot][originalRZ]);
                 
                 AdminObjects[slot][objX] = AdminObjects[slot][originalX];
