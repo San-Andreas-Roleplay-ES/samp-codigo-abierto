@@ -141,7 +141,7 @@ CMD:gritar(playerid, params[])
     GetPlayerName(playerid, name, sizeof(name));
     GetPlayerRoleplayName(playerid, rpName, sizeof(rpName));
     
-    format(string, sizeof(string), "%s grita: %s", rpName, params);
+    format(string, sizeof(string), "%s grita: ¡%s!", rpName, params);
     SendProximityMessage(playerid, CHAT_DISTANCE_NORMAL * 2, COLOR_WHITE, string);
     
     return 1;
