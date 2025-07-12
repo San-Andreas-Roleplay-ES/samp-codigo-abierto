@@ -448,7 +448,6 @@ stock OnPlayerDisconnectObjectSystem(playerid)
     DeletePVar(playerid, "DeleteObjectSlot");
 }
 
-// Comando para teletransportarse a un objeto
 alias:irobjeto("irobj", "gotoobj", "tpobj")
 CMD:irobjeto(playerid, params[])
 {
@@ -509,7 +508,6 @@ stock ObjectSystem_OnGameModeInit()
     return 1;
 }
 
-// Función para ser llamada en OnPlayerDisconnect
 stock ObjectSystem_OnPlayerDisconnect(playerid, reason)
 {
     OnPlayerDisconnectObjectSystem(playerid);
