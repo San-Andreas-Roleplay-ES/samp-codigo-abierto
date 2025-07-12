@@ -20,12 +20,13 @@
 // SOFTWARE.
 
 #include <YSI_Coding\y_hooks>
-
 #include "features/admin/objects.inc"
 #include "features/admin/teleports.inc"
 #include "features/admin/coordenadas.inc"
 #include "features/admin/anims.inc"
 #include "features/admin/vehicles.inc"
+
+new bool:PlayerGodMode[MAX_PLAYERS];
 
 CMD:hora(playerid, params[])
 {
@@ -103,12 +104,11 @@ CMD:ir(playerid, params[])
         return SendClientMessage(playerid, COLOR_FADE3, "El jugador no está conectado.");
 
     if(targetid == playerid)
-        return SendClientMessage(playerid, COLOR_FADE3, "¿Qué quieres hacer panflín, bugear el sv?");
+        return SendClientMessage(playerid, COLOR_DARKRED, "Que quieres hacer panflin bugear el sv?");
 
     new Float:x, Float:y, Float:z;
     GetPlayerPos(targetid, x, y, z);
     
-    // Obtener Virtual World e Interior del objetivo
     new targetVW = GetPlayerVirtualWorld(targetid);
     new targetInterior = GetPlayerInterior(targetid);
     
@@ -124,7 +124,6 @@ CMD:ir(playerid, params[])
         SetPlayerPos(playerid, x + 1.0, y, z + 1.0);
     }
     
-    // Actualizar Virtual World e Interior del jugador
     SetPlayerVirtualWorld(playerid, targetVW);
     SetPlayerInterior(playerid, targetInterior);
 
@@ -145,12 +144,11 @@ CMD:traer(playerid, params[])
         return SendClientMessage(playerid, COLOR_FADE3, "El jugador no está conectado.");
 
     if(targetid == playerid)
-        return SendClientMessage(playerid, COLOR_FADE3, "¿Qué quieres hacer panflín, bugear el sv?");
+        return SendClientMessage(playerid, COLOR_DARKRED, "que quieres hacer panflin bugear el sv?");
 
     new Float:x, Float:y, Float:z;
     GetPlayerPos(playerid, x, y, z);
     
-    // Obtener Virtual World e Interior del admin
     new adminVW = GetPlayerVirtualWorld(playerid);
     new adminInterior = GetPlayerInterior(playerid);
     
@@ -166,7 +164,6 @@ CMD:traer(playerid, params[])
         SetPlayerPos(targetid, x + 1.0, y, z + 1.0);
     }
     
-    // Actualizar Virtual World e Interior del objetivo
     SetPlayerVirtualWorld(targetid, adminVW);
     SetPlayerInterior(targetid, adminInterior);
 
@@ -174,11 +171,11 @@ CMD:traer(playerid, params[])
     GetPlayerName(targetid, targetname, sizeof(targetname));
     GetPlayerName(playerid, adminname, sizeof(adminname));
     
-    format(string, sizeof(string), "Has traído a %s (ID: %d) hacia tu posición.", targetname, targetid);
-    SendClientMessage(playerid, COLOR_GRAD2, string);
+    // format(string, sizeof(string), "Has traído a %s (ID: %d) hacia tu posición.", targetname, targetid);
+    // SendClientMessage(playerid, COLOR_GRAD2, string);
     
-    format(string, sizeof(string), "Has sido teletransportado por %s.", adminname);
-    SendClientMessage(targetid, COLOR_GRAD2, string);
+    // format(string, sizeof(string), "Has sido teletransportado por %s.", adminname);
+    // SendClientMessage(targetid, COLOR_GRAD2, string);
     return 1;
 }
 
@@ -200,10 +197,149 @@ CMD:darskin(playerid, params[])
     GetPlayerName(targetid, targetname, sizeof(targetname));
     GetPlayerName(playerid, adminname, sizeof(adminname));
     
-    format(string, sizeof(string), "Has cambiado el skin de %s (ID: %d) al skin ID: %d", targetname, targetid, skinid);
-    SendClientMessage(playerid, COLOR_GRAD2, string);
+    // format(string, sizeof(string), "Has cambiado el skin de %s (ID: %d) al skin ID: %d", targetname, targetid, skinid);
+    // SendClientMessage(playerid, COLOR_GRAD2, string);
     
-    format(string, sizeof(string), "%s te ha cambiado el skin al ID: %d", adminname, skinid);
-    SendClientMessage(targetid, COLOR_GRAD2, string);
+    // format(string, sizeof(string), "%s te ha cambiado el skin al ID: %d", adminname, skinid);
+    // SendClientMessage(targetid, COLOR_GRAD2, string);
     return 1;
 }
+
+CMD:adelante(playerid, params[])
+{
+    new Float:metros;
+    if(sscanf(params, "f", metros))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /adelante [metros]");
+
+    // if(metros < 0.1 || metros > 500.0)
+       // return SendClientMessage(playerid, COLOR_FADE3, "Distancia inválida (0.1-500 metros).");
+
+    new Float:x, Float:y, Float:z, Float:angle;
+    GetPlayerPos(playerid, x, y, z);
+    GetPlayerFacingAngle(playerid, angle);
+    
+    x += metros * floatsin(-angle, degrees);
+    y += metros * floatcos(-angle, degrees);
+    
+    SetPlayerPos(playerid, x, y, z);
+    // SendClientMessage(playerid, COLOR_GRAD2, va_return("Te moviste %.1f metros hacia adelante.", metros));
+    return 1;
+}
+
+CMD:atras(playerid, params[])
+{
+    new Float:metros;
+    if(sscanf(params, "f", metros))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /atras [metros]");
+
+    // if(metros < 0.1 || metros > 500.0)
+        // return SendClientMessage(playerid, COLOR_FADE3, "Distancia inválida (0.1-500 metros).");
+
+    new Float:x, Float:y, Float:z, Float:angle;
+    GetPlayerPos(playerid, x, y, z);
+    GetPlayerFacingAngle(playerid, angle);
+    
+    x -= metros * floatsin(-angle, degrees);
+    y -= metros * floatcos(-angle, degrees);
+    
+    SetPlayerPos(playerid, x, y, z);
+    // SendClientMessage(playerid, COLOR_GRAD2, va_return("Te moviste %.1f metros hacia atrás.", metros));
+    return 1;
+}
+
+CMD:arriba(playerid, params[])
+{
+    new Float:metros;
+    if(sscanf(params, "f", metros))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /arriba [metros]");
+
+    // if(metros < 0.1 || metros > 500.0)
+       // return SendClientMessage(playerid, COLOR_FADE3, "Altura inválida (0.1-500 metros).");
+
+    new Float:x, Float:y, Float:z;
+    GetPlayerPos(playerid, x, y, z);
+    z += metros;
+    
+    SetPlayerPos(playerid, x, y, z);
+    // SendClientMessage(playerid, COLOR_GRAD2, va_return("Te moviste %.1f metros hacia arriba.", metros));
+    return 1;
+}
+
+CMD:abajo(playerid, params[])
+{
+    new Float:metros;
+    if(sscanf(params, "f", metros))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /abajo [metros]");
+
+    // if(metros < 0.1 || metros > 500.0)
+       // return SendClientMessage(playerid, COLOR_FADE3, "Altura inválida (0.1-500 metros).");
+
+    new Float:x, Float:y, Float:z;
+    GetPlayerPos(playerid, x, y, z);
+    z -= metros;
+    
+    SetPlayerPos(playerid, x, y, z);
+    // SendClientMessage(playerid, COLOR_GRAD2, va_return("Te moviste %.1f metros hacia abajo.", metros));
+    return 1;
+}
+
+CMD:slap(playerid, params[])
+{
+    new targetid;
+    if(sscanf(params, "u", targetid))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /slap [playerid]");
+
+    if(!IsPlayerConnected(targetid))
+        return SendClientMessage(playerid, COLOR_FADE3, "Jugador no conectado.");
+
+    new Float:x, Float:y, Float:z;
+    new targetName[MAX_PLAYER_NAME], adminName[MAX_PLAYER_NAME];
+    
+    GetPlayerPos(targetid, x, y, z);
+    GetPlayerName(targetid, targetName, sizeof(targetName));
+    GetPlayerName(playerid, adminName, sizeof(adminName));
+    
+    SetPlayerPos(targetid, x, y, z + 7.0);
+    
+    // PlayerPlaySound(playerid, 1190, 0.0, 0.0, 0.0);
+    PlayerPlaySound(targetid, 1190, 0.0, 0.0, 0.0);
+    
+    SendClientMessage(playerid, COLOR_GRAD2, va_return("%s le dio una cachetada a %s.", adminName, targetName));
+    
+    return 1;
+}
+
+alias:godmode("gg")
+CMD:godmode(playerid, params[])
+{
+    if(PlayerGodMode[playerid])
+    {
+        PlayerGodMode[playerid] = false;
+        SetPlayerHealth(playerid, 100.0);
+        SendClientMessage(playerid, COLOR_GRAD2, "Godmode desactivado. Ahora puedes recibir daño.");
+    }
+    else
+    {
+        PlayerGodMode[playerid] = true;
+        SetPlayerHealth(playerid, 9999.0);
+        SendClientMessage(playerid, COLOR_GRAD2, "Godmode activado. Eres invencible.");
+    }
+    return 1;
+}
+
+hook OnPlayerConnect(playerid)
+{
+    PlayerGodMode[playerid] = false;
+    return 1;
+}
+
+hook OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
+{
+    if(PlayerGodMode[playerid])
+    {
+        SetPlayerHealth(playerid, 9999.0);
+        return 0;
+    }
+    return 1;
+}
+

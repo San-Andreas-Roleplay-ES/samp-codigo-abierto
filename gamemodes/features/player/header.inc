@@ -30,8 +30,8 @@ CMD:ayuda(playerid, params[])
     {
         SendClientMessage(playerid, COLOR_GRAD1, "Uso: /ayuda [opción]");
         SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (teleport, animacion, objetos)");
-        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (coordenadas, utilidades, chat)");
-        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (vehiculos, skin, talador)");
+        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (coordenadas, admin, chat)");
+        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (vehiculos, talador)");
         return 1;
     }
 
@@ -47,7 +47,7 @@ CMD:ayuda(playerid, params[])
     if(!strcmp(params, "teleport", true))
     {
         SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA TELEPORT _______________ ]");
-        SendClientMessage(playerid, COLOR_RADIO2, "[TELEPORT]{b2ffcd}: /jetpack /irpos /cj /idlewood /ls /lv /area51 /ap");
+        SendClientMessage(playerid, COLOR_RADIO2, "[TELEPORT]{b2ffcd}: /cj /idlewood /ls /lv /area51 /ap");
         return 1;
     }
     
@@ -73,10 +73,13 @@ CMD:ayuda(playerid, params[])
         return 1;
     }
     
-    if(!strcmp(params, "utilidades", true))
+    if(!strcmp(params, "admin", true))
     {
-        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA UTILIDADES _______________ ]");
-        SendClientMessage(playerid, COLOR_RADIO2, "[UTILIDADES]{b2ffcd}: /ropa /hora /clima /creararma");
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA ADMIN _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[ADMIN]{b2ffcd}: /irpos /adelante /atras /arriba /abajo");
+        SendClientMessage(playerid, COLOR_RADIO2, "[ADMIN]{b2ffcd}: /ir /traer /darskin /jetpack");
+        SendClientMessage(playerid, COLOR_RADIO2, "[ADMIN]{b2ffcd}: /ropa /hora /clima /creararma");
+        SendClientMessage(playerid, COLOR_RADIO2, "[ADMIN]{b2ffcd}: /slap /godmode");
         return 1;
     }
     
