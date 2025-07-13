@@ -67,7 +67,7 @@ stock ResetLumberjackPlayer(playerid)
 stock IsPlayerNearLumberjackPickup(playerid)
 {
     return IsPlayerInRangeOfPoint(playerid, 2.0, -2008.92, -2412.19, 30.62);
-}
+} 
 
 stock ShowLumberjackPickupNotif(playerid)
 {
@@ -412,7 +412,7 @@ CMD:talar(playerid, params[])
     new weapon = GetPlayerWeapon(playerid);
     if(weapon != 9) // ID 9 es la motosierra (chainsaw)
     {
-        SendClientMessage(playerid, COLOR_DARKRED, "No puedes talar el arbol con la mano. Necesitas una motosierra en tu mano derecha.");
+        SendClientMessage(playerid, COLOR_DARKRED, "Me parece que no eres tan listo.");
         return 1;
     }
     
@@ -428,6 +428,9 @@ CMD:talar(playerid, params[])
     
     TogglePlayerControllable(playerid, 0);
     ApplyAnimation(playerid, "CHAINSAW", "WEAPON_csaw", 4.1, 1, 0, 0, 1, 0, 1);
+    
+    // Ejecutar automáticamente /ame tala el arbol.
+    PC_EmulateCommand(playerid, "/ame tala el arbol.");
     
     LumberjackPlayer[playerid][cuttingTimer] = SetTimerEx("LumberjackCuttingTimer", 1000, false, "ii", playerid, LUMBERJACK_CUTTING_TIME);
     
