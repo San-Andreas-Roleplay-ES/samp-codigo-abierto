@@ -71,6 +71,8 @@
 #include "features/admin/header"
 #include "features/player/header"
 
+#include "features/breach_shotgun.inc"
+
 main() 
 {
 	print(""SERVER_NICK"");
