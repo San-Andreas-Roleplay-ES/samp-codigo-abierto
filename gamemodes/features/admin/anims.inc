@@ -20,7 +20,7 @@ CMD:anims(playerid, params[])
 CMD:bailar(playerid, params[])
 {
     if(IsPlayerInAnyVehicle(playerid))
-        return SendClientMessage(playerid, COLOR_FADE3, "No puedes usar este comando dentro de un vehículo.");
+        return SendClientMessage(playerid, COLOR_FADE3, "No puedes usar este comando dentro de un vehÃ­culo.");
 
     ApplyAnimation(playerid, "DANCING", "dnce_M_b", 4.1, 1, 0, 0, 0, 0);
     return 1;
@@ -29,7 +29,7 @@ CMD:bailar(playerid, params[])
 CMD:sentarse(playerid, params[])
 {
     if(IsPlayerInAnyVehicle(playerid))
-        return SendClientMessage(playerid, COLOR_FADE3, "No puedes usar este comando dentro de un vehículo.");
+        return SendClientMessage(playerid, COLOR_FADE3, "No puedes usar este comando dentro de un vehÃ­culo.");
 
     ApplyAnimation(playerid, "PED", "SEAT_idle", 4.1, 1, 0, 0, 0, 0);
     return 1;
@@ -38,7 +38,7 @@ CMD:sentarse(playerid, params[])
 CMD:saludar(playerid, params[])
 {
     if(IsPlayerInAnyVehicle(playerid))
-        return SendClientMessage(playerid, COLOR_FADE3, "No puedes usar este comando dentro de un vehículo.");
+        return SendClientMessage(playerid, COLOR_FADE3, "No puedes usar este comando dentro de un vehÃ­culo.");
 
     ApplyAnimation(playerid, "ON_LOOKERS", "wave_loop", 4.1, 1, 0, 0, 0, 0);
     return 1;
@@ -52,6 +52,8 @@ CMD:pararanim(playerid, params[])
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
+    Lumberjack_OnPlayerKeyStateChg(playerid, newkeys, oldkeys);
+    
     if(newkeys & KEY_SPRINT)
     {
         ClearAnimations(playerid);

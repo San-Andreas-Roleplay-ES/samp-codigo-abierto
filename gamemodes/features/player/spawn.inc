@@ -31,7 +31,17 @@ public OnPlayerConnect(playerid)
     new name[MAX_PLAYER_NAME];
     GetPlayerName(playerid, name, sizeof(name));
 
-    SendClientMessageToAll(COLOR_GRAD1, va_return("{ED801A}%s se ha conectado al servidor.", name));
+    new string[128];
+    format(string, sizeof(string), "{ED801A}%s se ha conectado al servidor.", name);
+    
+    for(new i = 0; i < MAX_PLAYERS; i++)
+    {
+        if(IsPlayerConnected(i))
+        {
+            SendClientMessage(i, COLOR_GRAD1, string);
+        }
+    }
+    
     return 1;
 }
 
@@ -69,5 +79,11 @@ public OnPlayerSpawn(playerid)
     GameTextForPlayer(playerid,"~p~"SERVER_DISCORD"", 5000, 4);
 
     SendClientMessage(playerid, COLOR_GRAD1, "¡Bienvenido al servidor! Usa /ayuda para ver los comandos disponibles.");
+    return 1;
+}
+
+public OnPlayerDisconnect(playerid, reason)
+{
+    Lumberjack_OnPlayerDisconnect(playerid, reason);
     return 1;
 }

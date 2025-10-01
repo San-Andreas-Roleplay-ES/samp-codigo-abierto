@@ -20,11 +20,13 @@
 // SOFTWARE.
 
 #include <YSI_Coding\y_hooks>
-
 #include "features/admin/objects.inc"
 #include "features/admin/teleports.inc"
 #include "features/admin/coordenadas.inc"
 #include "features/admin/anims.inc"
+#include "features/admin/vehicles.inc"
+
+new bool:PlayerGodMode[MAX_PLAYERS];
 
 CMD:hora(playerid, params[])
 {
@@ -49,30 +51,6 @@ CMD:clima(playerid, params[])
         return SendClientMessage(playerid, COLOR_FADE3, "Clima inválido.");
 
     SetWeather(weatherid);
-    return 1;
-}
-
-CMD:crearveh(playerid, params[])
-{
-    new vehiclemodelid, color1, color2, sirena;
-    if(sscanf(params, "dddD(0)", vehiclemodelid, color1, color2, sirena))
-        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /crearveh [vehicleid] [color1] [color2] [sirena (opcional)]");
-
-    if(vehiclemodelid < 400 || vehiclemodelid > 611 ||
-        vehiclemodelid == 449 || vehiclemodelid == 537 || vehiclemodelid == 538 ||
-        vehiclemodelid == 569 || vehiclemodelid == 570 || vehiclemodelid == 590)
-    {
-        return SendClientMessage(playerid, COLOR_FADE3, "Modelo de vehículo inválido.");
-    }
-
-    new Float:x, Float:y, Float:z, Float:a;
-    GetPlayerPos(playerid, x, y, z);
-    GetPlayerFacingAngle(playerid, a);
-
-    new sampvehicleid = CreateVehicle(vehiclemodelid, x, y, z, a, color1, color2, sirena == 1 ? 0 : -1);
-    PutPlayerInVehicle(playerid, sampvehicleid, 0);
-
-    SendClientMessage(playerid, COLOR_GRAD2, va_return("Vehículo creado con: Model ID: %d | Samp ID: %d ", vehiclemodelid, sampvehicleid));
     return 1;
 }
 
@@ -102,15 +80,7 @@ CMD:jetpack(playerid, params[])
     return 1;
 }
 
-CMD:limpiarchat(playerid, params[])
-{
-    for(new i = 0; i < 50; i++)
-    {
-        SendClientMessage(playerid, -1, " ");
-    }
-    return 1;
-}
-
+alias:ropa("skin")
 CMD:ropa(playerid, params[])
 {
     new skinid;
@@ -123,3 +93,253 @@ CMD:ropa(playerid, params[])
     SetPlayerSkin(playerid, skinid);
     return 1;
 }
+
+CMD:ir(playerid, params[])
+{
+    new targetid;
+    if(sscanf(params, "u", targetid))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /ir [playerid]");
+
+    if(!IsPlayerConnected(targetid))
+        return SendClientMessage(playerid, COLOR_FADE3, "El jugador no está conectado.");
+
+    if(targetid == playerid)
+        return SendClientMessage(playerid, COLOR_DARKRED, "Que quieres hacer panflin bugear el sv?");
+
+    new Float:x, Float:y, Float:z;
+    GetPlayerPos(targetid, x, y, z);
+    
+    new targetVW = GetPlayerVirtualWorld(targetid);
+    new targetInterior = GetPlayerInterior(targetid);
+    
+    if(IsPlayerInAnyVehicle(playerid))
+    {
+        new vehicleid = GetPlayerVehicleID(playerid);
+        SetVehiclePos(vehicleid, x + 2.0, y, z);
+        SetVehicleVirtualWorld(vehicleid, targetVW);
+        LinkVehicleToInterior(vehicleid, targetInterior);
+    }
+    else
+    {
+        SetPlayerPos(playerid, x + 1.0, y, z + 1.0);
+    }
+    
+    SetPlayerVirtualWorld(playerid, targetVW);
+    SetPlayerInterior(playerid, targetInterior);
+
+    new string[128], targetname[MAX_PLAYER_NAME];
+    GetPlayerName(targetid, targetname, sizeof(targetname));
+    format(string, sizeof(string), "Te has teletransportado hacia %s (ID: %d).", targetname, targetid);
+    SendClientMessage(playerid, COLOR_GRAD2, string);
+    return 1;
+}
+
+CMD:traer(playerid, params[])
+{
+    new targetid;
+    if(sscanf(params, "u", targetid))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /traer [playerid]");
+
+    if(!IsPlayerConnected(targetid))
+        return SendClientMessage(playerid, COLOR_FADE3, "El jugador no está conectado.");
+
+    if(targetid == playerid)
+        return SendClientMessage(playerid, COLOR_DARKRED, "que quieres hacer panflin bugear el sv?");
+
+    new Float:x, Float:y, Float:z;
+    GetPlayerPos(playerid, x, y, z);
+    
+    new adminVW = GetPlayerVirtualWorld(playerid);
+    new adminInterior = GetPlayerInterior(playerid);
+    
+    if(IsPlayerInAnyVehicle(targetid))
+    {
+        new vehicleid = GetPlayerVehicleID(targetid);
+        SetVehiclePos(vehicleid, x + 2.0, y, z);
+        SetVehicleVirtualWorld(vehicleid, adminVW);
+        LinkVehicleToInterior(vehicleid, adminInterior);
+    }
+    else
+    {
+        SetPlayerPos(targetid, x + 1.0, y, z + 1.0);
+    }
+    
+    SetPlayerVirtualWorld(targetid, adminVW);
+    SetPlayerInterior(targetid, adminInterior);
+
+    new string[128], targetname[MAX_PLAYER_NAME], adminname[MAX_PLAYER_NAME];
+    GetPlayerName(targetid, targetname, sizeof(targetname));
+    GetPlayerName(playerid, adminname, sizeof(adminname));
+    
+    // format(string, sizeof(string), "Has traído a %s (ID: %d) hacia tu posición.", targetname, targetid);
+    // SendClientMessage(playerid, COLOR_GRAD2, string);
+    
+    // format(string, sizeof(string), "Has sido teletransportado por %s.", adminname);
+    // SendClientMessage(targetid, COLOR_GRAD2, string);
+    return 1;
+}
+
+CMD:darskin(playerid, params[])
+{
+    new targetid, skinid;
+    if(sscanf(params, "ud", targetid, skinid))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /darskin [playerid] [skinid]");
+
+    if(!IsPlayerConnected(targetid))
+        return SendClientMessage(playerid, COLOR_FADE3, "El jugador no está conectado.");
+
+    if(skinid < 0 || skinid > 311)
+        return SendClientMessage(playerid, COLOR_FADE3, "ID de skin inválido (0-311).");
+
+    SetPlayerSkin(targetid, skinid);
+
+    new string[128], targetname[MAX_PLAYER_NAME], adminname[MAX_PLAYER_NAME];
+    GetPlayerName(targetid, targetname, sizeof(targetname));
+    GetPlayerName(playerid, adminname, sizeof(adminname));
+    
+    // format(string, sizeof(string), "Has cambiado el skin de %s (ID: %d) al skin ID: %d", targetname, targetid, skinid);
+    // SendClientMessage(playerid, COLOR_GRAD2, string);
+    
+    // format(string, sizeof(string), "%s te ha cambiado el skin al ID: %d", adminname, skinid);
+    // SendClientMessage(targetid, COLOR_GRAD2, string);
+    return 1;
+}
+
+CMD:adelante(playerid, params[])
+{
+    new Float:metros;
+    if(sscanf(params, "f", metros))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /adelante [metros]");
+
+    // if(metros < 0.1 || metros > 500.0)
+       // return SendClientMessage(playerid, COLOR_FADE3, "Distancia inválida (0.1-500 metros).");
+
+    new Float:x, Float:y, Float:z, Float:angle;
+    GetPlayerPos(playerid, x, y, z);
+    GetPlayerFacingAngle(playerid, angle);
+    
+    x += metros * floatsin(-angle, degrees);
+    y += metros * floatcos(-angle, degrees);
+    
+    SetPlayerPos(playerid, x, y, z);
+    // SendClientMessage(playerid, COLOR_GRAD2, va_return("Te moviste %.1f metros hacia adelante.", metros));
+    return 1;
+}
+
+CMD:atras(playerid, params[])
+{
+    new Float:metros;
+    if(sscanf(params, "f", metros))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /atras [metros]");
+
+    // if(metros < 0.1 || metros > 500.0)
+        // return SendClientMessage(playerid, COLOR_FADE3, "Distancia inválida (0.1-500 metros).");
+
+    new Float:x, Float:y, Float:z, Float:angle;
+    GetPlayerPos(playerid, x, y, z);
+    GetPlayerFacingAngle(playerid, angle);
+    
+    x -= metros * floatsin(-angle, degrees);
+    y -= metros * floatcos(-angle, degrees);
+    
+    SetPlayerPos(playerid, x, y, z);
+    // SendClientMessage(playerid, COLOR_GRAD2, va_return("Te moviste %.1f metros hacia atrás.", metros));
+    return 1;
+}
+
+CMD:arriba(playerid, params[])
+{
+    new Float:metros;
+    if(sscanf(params, "f", metros))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /arriba [metros]");
+
+    // if(metros < 0.1 || metros > 500.0)
+       // return SendClientMessage(playerid, COLOR_FADE3, "Altura inválida (0.1-500 metros).");
+
+    new Float:x, Float:y, Float:z;
+    GetPlayerPos(playerid, x, y, z);
+    z += metros;
+    
+    SetPlayerPos(playerid, x, y, z);
+    // SendClientMessage(playerid, COLOR_GRAD2, va_return("Te moviste %.1f metros hacia arriba.", metros));
+    return 1;
+}
+
+CMD:abajo(playerid, params[])
+{
+    new Float:metros;
+    if(sscanf(params, "f", metros))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /abajo [metros]");
+
+    // if(metros < 0.1 || metros > 500.0)
+       // return SendClientMessage(playerid, COLOR_FADE3, "Altura inválida (0.1-500 metros).");
+
+    new Float:x, Float:y, Float:z;
+    GetPlayerPos(playerid, x, y, z);
+    z -= metros;
+    
+    SetPlayerPos(playerid, x, y, z);
+    // SendClientMessage(playerid, COLOR_GRAD2, va_return("Te moviste %.1f metros hacia abajo.", metros));
+    return 1;
+}
+
+CMD:slap(playerid, params[])
+{
+    new targetid;
+    if(sscanf(params, "u", targetid))
+        return SendClientMessage(playerid, COLOR_GRAD1, "USO: /slap [playerid]");
+
+    if(!IsPlayerConnected(targetid))
+        return SendClientMessage(playerid, COLOR_FADE3, "Jugador no conectado.");
+
+    new Float:x, Float:y, Float:z;
+    new targetName[MAX_PLAYER_NAME], adminName[MAX_PLAYER_NAME];
+    
+    GetPlayerPos(targetid, x, y, z);
+    GetPlayerName(targetid, targetName, sizeof(targetName));
+    GetPlayerName(playerid, adminName, sizeof(adminName));
+    
+    SetPlayerPos(targetid, x, y, z + 7.0);
+    
+    // PlayerPlaySound(playerid, 1190, 0.0, 0.0, 0.0);
+    PlayerPlaySound(targetid, 1190, 0.0, 0.0, 0.0);
+    
+    SendClientMessage(playerid, COLOR_GRAD2, va_return("%s le dio una cachetada a %s.", adminName, targetName));
+    
+    return 1;
+}
+
+alias:godmode("gg")
+CMD:godmode(playerid, params[])
+{
+    if(PlayerGodMode[playerid])
+    {
+        PlayerGodMode[playerid] = false;
+        SetPlayerHealth(playerid, 100.0);
+        SendClientMessage(playerid, COLOR_GRAD2, "Godmode desactivado. Ahora puedes recibir daño.");
+    }
+    else
+    {
+        PlayerGodMode[playerid] = true;
+        SetPlayerHealth(playerid, 9999.0);
+        SendClientMessage(playerid, COLOR_GRAD2, "Godmode activado. Eres invencible.");
+    }
+    return 1;
+}
+
+hook OnPlayerConnect(playerid)
+{
+    PlayerGodMode[playerid] = false;
+    return 1;
+}
+
+hook OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid, bodypart)
+{
+    if(PlayerGodMode[playerid])
+    {
+        SetPlayerHealth(playerid, 9999.0);
+        return 0;
+    }
+    return 1;
+}
+

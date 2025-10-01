@@ -20,6 +20,9 @@
 // SOFTWARE.
 
 #pragma warning disable 239 // ignore warning 239: literal array/string passed to a non-const parameter
+#pragma warning disable 204
+#pragma warning disable 200
+#pragma warning disable 213
 
 #include <a_samp>
 #include <a_mysql>
@@ -83,7 +86,7 @@ main()
 public OnGameModeInit()
 {
 	SendRconCommand("hostname "SERVER_NAME" | "SERVER_URL" [Código abierto]");
-	SetGameModeText("Test Server");
+	SetGameModeText("Servidor de Prueba");
 
 	AddPlayerClassEx(1, 102, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	AddPlayerClassEx(2, 106, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
@@ -94,5 +97,14 @@ public OnGameModeInit()
 	AddPlayerClassEx(7, 280, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	AddPlayerClassEx(8, 285, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	AddPlayerClassEx(9, 287, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
+	
+	Lumberjack_OnGameModeInit();
+	
+	return 1;
+}
+
+public OnPlayerPickUpPickup(playerid, pickupid)
+{
+	Lumberjack_OnPlayerPickUpPickup(playerid, pickupid);
 	return 1;
 }

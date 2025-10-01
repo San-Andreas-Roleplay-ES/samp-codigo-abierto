@@ -20,17 +20,91 @@
 // SOFTWARE.
 
 #include "features/player/spawn"
+#include "features/player/chat"
+#include "features/player/minigame-lumberjack/header"
 #include "features/player/color"
 
 CMD:ayuda(playerid, params[])
 {
-    SendClientMessage(playerid, COLOR_YELLOW, "----------------------Comandos disponibles------------------------");
-    SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Comandos de teleport: /jetpack, /irpos, /cj, /idlewood, /ls, /lv, /area51");
-    SendClientMessage(playerid, COLOR_DARKYELLOW, "Comandos de animación: /anims, /pararanim");
-    SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Comandos de objetos: /crearobjeto, /editarobjeto, /eliminarobjeto");
-    SendClientMessage(playerid, COLOR_DARKYELLOW, "Comandos de coordenadas: /marcarc(oord), /listarc(oords)");
-    SendClientMessage(playerid, COLOR_LIGHTYELLOW, "Comandos de utilidades: /skin, /hora, /clima, /crearveh, /creararma, /colores, /qfa");
-    SendClientMessage(playerid, COLOR_DARKYELLOW, "Comandos de chat: /limpiarchat");
+    if(isnull(params))
+    {
+        SendClientMessage(playerid, COLOR_GRAD1, "Uso: /ayuda [opci�n]");
+        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opci�n: (teleport, animacion, objetos)");
+        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opci�n: (coordenadas, admin, chat)");
+        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opci�n: (vehiculos, talador)");
+        return 1;
+    }
+
+    if(!strcmp(params, "vehiculos", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA VEHICULOS _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[VEHICULOS]{b2ffcd}: (/crearveh)iculo (/borrarveh)iculo (/irveh)iculo");
+        SendClientMessage(playerid, COLOR_RADIO2, "[VEHICULOS]{b2ffcd}: (/traerveh)iculo (/repararveh)iculo (/dardlveh)iculo");
+        SendClientMessage(playerid, COLOR_RADIO2, "[VEHICULOS]{b2ffcd}: /irvehin) /traervehin");
+        return 1;
+    }
+    
+    if(!strcmp(params, "teleport", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA TELEPORT _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[TELEPORT]{b2ffcd}: /cj /idlewood /ls /lv /area51 /ap");
+        return 1;
+    }
+    
+    if(!strcmp(params, "animacion", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA ANIMACI�N _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[ANIMACI�N]{b2ffcd}: /anims /pararanim");
+        return 1;
+    }
+    
+    if(!strcmp(params, "objetos", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA OBJETOS _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[OBJETOS]{b2ffcd}: (/crearobj)eto (/editarobj)eto (/eliminarobj)eto");
+        SendClientMessage(playerid, COLOR_RADIO2, "[OBJETOS]{b2ffcd}: /listarobjetos (/irobj)eto /objetostats");
+        return 1;
+    }
+    
+    if(!strcmp(params, "coordenadas", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA COORDENADAS _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[COORDENADAS]{b2ffcd}: (/marcarc)oord (/listarc)oords");
+        return 1;
+    }
+    
+    if(!strcmp(params, "admin", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA ADMIN _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[ADMIN]{b2ffcd}: /irpos /adelante /atras /arriba /abajo");
+        SendClientMessage(playerid, COLOR_RADIO2, "[ADMIN]{b2ffcd}: /ir /traer /darskin /jetpack");
+        SendClientMessage(playerid, COLOR_RADIO2, "[ADMIN]{b2ffcd}: /ropa /hora /clima /creararma");
+        SendClientMessage(playerid, COLOR_RADIO2, "[ADMIN]{b2ffcd}: /slap /godmode");
+        return 1;
+    }
+    
+    if(!strcmp(params, "chat", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA CHAT _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[CHAT]{b2ffcd}: /me /ame /do (/c)ercano /b");
+        SendClientMessage(playerid, COLOR_RADIO2, "[CHAT]{b2ffcd}: (/gr)itar /limpiarchat");
+        return 1;
+    }
+    
+    if(!strcmp(params, "skin", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA SKIN _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[SKIN]{b2ffcd}: /skin");
+        return 1;
+    }
+    
+    if(!strcmp(params, "talador", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA TALADOR _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[TALADOR]{b2ffcd}: /iniciarlbj /cancelarlbj /talar");
+        return 1;
+    }
+    
+    SendClientMessage(playerid, COLOR_FADE3, "Opci�n no v�lida. Usa /ayuda para ver las opciones disponibles.");
     return 1;
 }
-
