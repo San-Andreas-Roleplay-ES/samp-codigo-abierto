@@ -81,9 +81,3 @@ public OnPlayerSpawn(playerid)
     SendClientMessage(playerid, COLOR_GRAD1, "¡Bienvenido al servidor! Usa /ayuda para ver los comandos disponibles.");
     return 1;
 }
-
-public OnPlayerDisconnect(playerid, reason)
-{
-    Lumberjack_OnPlayerDisconnect(playerid, reason);
-    return 1;
-}

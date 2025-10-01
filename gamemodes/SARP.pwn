@@ -97,14 +97,5 @@ public OnGameModeInit()
 	AddPlayerClassEx(7, 280, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	AddPlayerClassEx(8, 285, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	AddPlayerClassEx(9, 287, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
-	
-	Lumberjack_OnGameModeInit();
-	
-	return 1;
-}
-
-public OnPlayerPickUpPickup(playerid, pickupid)
-{
-	Lumberjack_OnPlayerPickUpPickup(playerid, pickupid);
 	return 1;
 }

@@ -1,39 +1,63 @@
-#define MAX_LUMBERJACK_TREES 50
-#define MAX_TREE_OBJECTS 100
-#define LUMBERJACK_PICKUP_ID 341
-#define LUMBERJACK_PICKUP_TYPE 1
-#define LUMBERJACK_TREE_MODEL 655
-#define LUMBERJACK_CUTTING_TIME 10
-#define TREE_DETECTION_RANGE 100.0
+// SAN ANDREAS ROLEPLAY
+// Copyright (c) 2021 - 2025 pigeon
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
-// Lista de modelos de árboles aceptados para talar
-// Incluye los modelos mencionados originalmente y otros árboles comunes
-new const TREE_MODELS[] = {
-    // Árboles originales mencionados por el usuario
-    791, 790, 782, 767, 776, 778, 772, 774, 763,
-    // Árboles adicionales comunes en SA-MP
-    698, 700, 701, 702, 703, 704, 705, 706, 707, 708, 709, 710,
-    18368, 18566, 18568, 18570, 18572, 18574, 18576, 18578,
-    // Palmeras y otros árboles
-    620, 621, 622, 623, 624, 625, 626, 627, 628, 629, 630, 631,
-    652, 653, 654, 655, 656, 657, 658, 659, 660, 661, 662, 663
+#include <YSI_Coding\y_hooks>
+
+#define MAX_LUMBERJACK_TREES        50
+#define MAX_TREE_OBJECTS            100
+
+#define LUMBERJACK_PICKUP_ID        341
+#define LUMBERJACK_PICKUP_TYPE      1
+#define LUMBERJACK_TREE_MODEL       655
+#define LUMBERJACK_CUTTING_TIME     10
+
+#define TREE_DETECTION_RANGE        100.0
+
+new const TREE_MODELS[] = 
+{
+    620, 621, 622, 623, 624, 629, 652, 654, 655,
+    656, 657, 658, 659, 660, 661, 700, 703, 704,
+    705, 706, 707, 708, 709, 710, 782, 767, 776,
+    778, 772, 774, 763, 729, 727, 731, 732, 714,
+    771, 616, 886, 735, 733, 723, 721, 777, 720,
+    890, 893, 685, 687, 3517, 3512, 3511, 615, 3510,
+    671, 713, 691, 673, 672, 669, 3508, 664, 661,
+    659, 658, 656, 654, 618, 617, 736, 767, 776,
+    3507, 3506, 3505, 892, 782, 645
 };
 
-// Función que comprueba si un modelid es un árbol
 stock bool:IsTree(modelid)
 {
     for (new i = 0; i < sizeof(TREE_MODELS); i++)
     {
         if (modelid == TREE_MODELS[i])
         {
-            return true; // Es un árbol
+            return true;
         }
     }
-    return false; // No es un árbol
+    return false;
 }
 
 // Función que verifica si el jugador está en una zona conocida con árboles
-stock bool:IsInTreeArea(Float:x, Float:y, Float:z)
+stock bool:IsInTree2DArea(Float:x, Float:y)
 {
     // Angel Pine (bosque norte) - área con muchos árboles
     if(x >= -2172.0 && x <= -1938.0 && y >= -2324.0 && y <= -2100.0)
@@ -61,9 +85,9 @@ stock bool:IsInTreeArea(Float:x, Float:y, Float:z)
 enum LumberjackPlayerData {
     bool:isActive,
     bool:isCutting,
-    detectedTrees[MAX_LUMBERJACK_TREES], // IDs de objetos detectados
+    detectedTrees[MAX_LUMBERJACK_TREES],
     playerMapIcons[MAX_LUMBERJACK_TREES],
-    treesFound, // Cantidad de árboles encontrados/detectados
+    treesFound,
     treesCut,
     cuttingTimer,
     currentTree,
@@ -74,8 +98,12 @@ enum LumberjackPlayerData {
 new LumberjackPlayer[MAX_PLAYERS][LumberjackPlayerData];
 new LumberjackPickup;
 
-stock InitLumberjackSystem()
+hook OnScriptInit()
 {
+    CreateDynamicObject(657, -2017.16565, -2428.55908, 29.80477,   0.00000, 0.00000, 0.00000);
+    CreateDynamicObject(657, -2014.78162, -2439.72339, 29.80477,   0.00000, 0.00000, 0.00000);
+    CreateDynamicObject(657, -2002.42322, -2439.06812, 29.80477,   0.00000, 0.00000, 0.00000);
+
     LumberjackPickup = CreateDynamicPickup(LUMBERJACK_PICKUP_ID, LUMBERJACK_PICKUP_TYPE, -2008.92, -2412.19, 30.62);
     
     for(new i = 0; i < MAX_PLAYERS; i++)
@@ -84,8 +112,7 @@ stock InitLumberjackSystem()
     }
     
     SetTimer("CheckLumberjackPickupProximity", 1000, true);
-    
-    print("[LumberjackSystem] Sistema de talador de árboles inicializado.\n");
+    return 1;
 }
 
 stock ResetLumberjackPlayer(playerid)
@@ -205,75 +232,43 @@ stock DetectNearbyTrees(playerid)
     new Float:pos[3];
     GetPlayerPos(playerid, pos[0], pos[1], pos[2]);
     
-    // Verificar primero si está en una zona conocida con árboles
-    if(!IsInTreeArea(pos[0], pos[1], pos[2]))
+    new object_array[MAX_OBJECTS];
+    new objectsFound = Streamer_GetNearbyItems(pos[0], pos[1], pos[2], STREAMER_TYPE_OBJECT, object_array, MAX_OBJECTS, 100.0);
+    
+    new modelid = 0;
+    new tree_count = 0;
+    
+    for(new i = 0; i < objectsFound; i++)
     {
-        return 0; // No está en zona de árboles
-    }
-    
-    // Intentar detección dinámica con límites seguros
-    new objectArray[50]; // Cantidad reducida para evitar problemas
-    new objectsFound = Streamer_GetNearbyItems(pos[0], pos[1], pos[2], STREAMER_TYPE_OBJECT, objectArray, 50, 15.0, GetPlayerVirtualWorld(playerid));
-    
-    new treesDetected = 0;
-    
-    // Solo procesar si la cantidad es razonable
-    if(objectsFound > 0 && objectsFound <= 100)
-    {
-        for(new i = 0; i < objectsFound && treesDetected < MAX_LUMBERJACK_TREES; i++)
+        if(!IsValidDynamicObject(object_array[i]))
         {
-            if(objectArray[i] <= 0) continue; // Saltar IDs inválidos
-            
-            new modelid = Streamer_GetIntData(STREAMER_TYPE_OBJECT, objectArray[i], E_STREAMER_MODEL_ID);
-            if(modelid <= 0) continue; // Saltar modelos inválidos
-            
-            if(IsTree(modelid))
-            {
-                LumberjackPlayer[playerid][detectedTrees][treesDetected] = objectArray[i];
-                
-                // Crear icono en el mapa para este árbol
-                new Float:objPos[3];
-                Streamer_GetFloatData(STREAMER_TYPE_OBJECT, objectArray[i], E_STREAMER_X, objPos[0]);
-                Streamer_GetFloatData(STREAMER_TYPE_OBJECT, objectArray[i], E_STREAMER_Y, objPos[1]);
-                Streamer_GetFloatData(STREAMER_TYPE_OBJECT, objectArray[i], E_STREAMER_Z, objPos[2]);
-                
-                LumberjackPlayer[playerid][playerMapIcons][treesDetected] = CreateDynamicMapIcon(
-                    objPos[0], objPos[1], objPos[2], 
-                    0, 0x8B4513FF, -1, -1, playerid);
-                
-                treesDetected++;
-            }
+            printf("Objeto inválido detectado en la lista de árboles.");
+            continue;
         }
-    }
-    
-    // Si no se encontraron árboles dinámicos pero está en zona de árboles,
-    // crear árboles ficticios para que el sistema funcione
-    if(treesDetected == 0)
-    {
-        // Crear algunos árboles ficticios alrededor del jugador
-        for(new i = 0; i < 3; i++)
+
+        modelid = Streamer_GetIntData(STREAMER_TYPE_OBJECT, object_array[i], E_STREAMER_MODEL_ID);
+
+        if(IsTree(modelid) && tree_count < MAX_LUMBERJACK_TREES)
         {
-            new Float:treeX = pos[0] + random(20) - 10;
-            new Float:treeY = pos[1] + random(20) - 10;
-            new Float:treeZ = pos[2];
+            printf("Árbol detectado: Modelo ID ", modelid);
+
+            LumberjackPlayer[playerid][detectedTrees][tree_count] = object_array[i];
             
-            // Crear objeto temporal de árbol
-            LumberjackPlayer[playerid][detectedTrees][treesDetected] = CreateDynamicObject(
-                TREE_MODELS[random(sizeof(TREE_MODELS))], 
-                treeX, treeY, treeZ, 0.0, 0.0, 0.0,
-                GetPlayerVirtualWorld(playerid), -1, playerid
-            );
+            new Float:objPos[3];
+            Streamer_GetFloatData(STREAMER_TYPE_OBJECT, object_array[i], E_STREAMER_X, objPos[0]);
+            Streamer_GetFloatData(STREAMER_TYPE_OBJECT, object_array[i], E_STREAMER_Y, objPos[1]);
+            Streamer_GetFloatData(STREAMER_TYPE_OBJECT, object_array[i], E_STREAMER_Z, objPos[2]);
             
-            LumberjackPlayer[playerid][playerMapIcons][treesDetected] = CreateDynamicMapIcon(
-                treeX, treeY, treeZ, 
+            LumberjackPlayer[playerid][playerMapIcons][tree_count] = CreateDynamicMapIcon(
+                objPos[0], objPos[1], objPos[2], 
                 0, 0x8B4513FF, -1, -1, playerid);
             
-            treesDetected++;
+            tree_count++;
         }
     }
-    
-    LumberjackPlayer[playerid][treesFound] = treesDetected;
-    return treesDetected;
+
+    LumberjackPlayer[playerid][treesFound] = tree_count;
+    return tree_count;
 }
 
 stock StartLumberjackMinigame(playerid)
@@ -291,9 +286,9 @@ stock StartLumberjackMinigame(playerid)
     }
     
     // Detectar árboles cercanos al jugador
-    new treesDetected = DetectNearbyTrees(playerid);
+    new tree_count = DetectNearbyTrees(playerid);
     
-    if(treesDetected == 0)
+    if(tree_count == 0)
     {
         SendClientMessage(playerid, COLOR_FADE3, "No se encontraron árboles cerca de tu ubicación. Muévete a una zona con más vegetación.");
         return 0;
@@ -308,7 +303,7 @@ stock StartLumberjackMinigame(playerid)
     }
     
     SendClientMessage(playerid, COLOR_GREEN, "Has comenzado tu jornada como talador.");
-    SendClientMessage(playerid, COLOR_GREEN, sprintf("Se encontraron %d árboles cerca de tu ubicación. ¡Ve y tálalos todos!", treesDetected));
+    SendClientMessage(playerid, COLOR_GREEN, sprintf("Se encontraron %d árboles cerca de tu ubicación. ¡Ve y tálalos todos!", tree_count));
     
     return 1;
 }
@@ -570,8 +565,8 @@ CMD:debugarboles(playerid, params[])
     SendClientMessage(playerid, COLOR_WHITE, sprintf("Virtual World: %d", GetPlayerVirtualWorld(playerid)));
     
     // Intentar detección con límites seguros
-    new objectArray[50]; // Reducir cantidad para evitar problemas
-    new objectsFound = Streamer_GetNearbyItems(pos[0], pos[1], pos[2], STREAMER_TYPE_OBJECT, objectArray, 50, 10.0, GetPlayerVirtualWorld(playerid));
+    new object_array[50]; // Reducir cantidad para evitar problemas
+    new objectsFound = Streamer_GetNearbyItems(pos[0], pos[1], pos[2], STREAMER_TYPE_OBJECT, object_array, 50, 10.0, GetPlayerVirtualWorld(playerid));
     
     SendClientMessage(playerid, COLOR_WHITE, sprintf("Objetos detectados en 10m: %d", objectsFound));
     
@@ -580,7 +575,7 @@ CMD:debugarboles(playerid, params[])
         SendClientMessage(playerid, COLOR_RED, "ERROR: Cantidad de objetos anormal. Usando detección por áreas.");
         
         // Usar detección por áreas conocidas
-        if(IsInTreeArea(pos[0], pos[1], pos[2]))
+        if(IsInTree2DArea(pos[0], pos[1]))
         {
             SendClientMessage(playerid, COLOR_GREEN, "? Estás en una zona con árboles conocida");
         }
@@ -598,26 +593,26 @@ CMD:debugarboles(playerid, params[])
     new validTreesFound = 0;
     for(new i = 0; i < objectsFound && i < 10; i++)
     {
-        if(objectArray[i] <= 0) continue; // Saltar IDs inválidos
+        if(object_array[i] <= 0) continue; // Saltar IDs inválidos
         
-        new modelid = Streamer_GetIntData(STREAMER_TYPE_OBJECT, objectArray[i], E_STREAMER_MODEL_ID);
+        new modelid = Streamer_GetIntData(STREAMER_TYPE_OBJECT, object_array[i], E_STREAMER_MODEL_ID);
         if(modelid <= 0) continue; // Saltar modelos inválidos
         
         new Float:objPos[3];
-        Streamer_GetFloatData(STREAMER_TYPE_OBJECT, objectArray[i], E_STREAMER_X, objPos[0]);
-        Streamer_GetFloatData(STREAMER_TYPE_OBJECT, objectArray[i], E_STREAMER_Y, objPos[1]);
-        Streamer_GetFloatData(STREAMER_TYPE_OBJECT, objectArray[i], E_STREAMER_Z, objPos[2]);
+        Streamer_GetFloatData(STREAMER_TYPE_OBJECT, object_array[i], E_STREAMER_X, objPos[0]);
+        Streamer_GetFloatData(STREAMER_TYPE_OBJECT, object_array[i], E_STREAMER_Y, objPos[1]);
+        Streamer_GetFloatData(STREAMER_TYPE_OBJECT, object_array[i], E_STREAMER_Z, objPos[2]);
         
         new Float:distance = GetPlayerDistanceFromPoint(playerid, objPos[0], objPos[1], objPos[2]);
         
         if(IsTree(modelid))
         {
-            SendClientMessage(playerid, COLOR_GREEN, sprintf("? ÁRBOL - ID:%d Modelo:%d Dist:%0.1fm", objectArray[i], modelid, distance));
+            SendClientMessage(playerid, COLOR_GREEN, sprintf("? ÁRBOL - ID:%d Modelo:%d Dist:%0.1fm", object_array[i], modelid, distance));
             validTreesFound++;
         }
         else
         {
-            SendClientMessage(playerid, COLOR_GRAD1, sprintf("• Objeto - ID:%d Modelo:%d Dist:%0.1fm", objectArray[i], modelid, distance));
+            SendClientMessage(playerid, COLOR_GRAD1, sprintf("• Objeto - ID:%d Modelo:%d Dist:%0.1fm", object_array[i], modelid, distance));
         }
     }
     
@@ -636,24 +631,24 @@ CMD:testmodelo(playerid, params[])
         return 1;
     }
     
-    new Float:pos[3], objectArray[MAX_TREE_OBJECTS];
+    new Float:pos[3], object_array[MAX_TREE_OBJECTS];
     GetPlayerPos(playerid, pos[0], pos[1], pos[2]);
     
-    new objectsFound = Streamer_GetNearbyItems(pos[0], pos[1], pos[2], STREAMER_TYPE_OBJECT, objectArray, MAX_TREE_OBJECTS, TREE_DETECTION_RANGE, GetPlayerVirtualWorld(playerid));
+    new objectsFound = Streamer_GetNearbyItems(pos[0], pos[1], pos[2], STREAMER_TYPE_OBJECT, object_array, MAX_TREE_OBJECTS, TREE_DETECTION_RANGE, GetPlayerVirtualWorld(playerid));
     
     new found = 0;
     for(new i = 0; i < objectsFound; i++)
     {
-        new objModelid = Streamer_GetIntData(STREAMER_TYPE_OBJECT, objectArray[i], E_STREAMER_MODEL_ID);
+        new objModelid = Streamer_GetIntData(STREAMER_TYPE_OBJECT, object_array[i], E_STREAMER_MODEL_ID);
         if(objModelid == modelid)
         {
             new Float:objPos[3];
-            Streamer_GetFloatData(STREAMER_TYPE_OBJECT, objectArray[i], E_STREAMER_X, objPos[0]);
-            Streamer_GetFloatData(STREAMER_TYPE_OBJECT, objectArray[i], E_STREAMER_Y, objPos[1]);
-            Streamer_GetFloatData(STREAMER_TYPE_OBJECT, objectArray[i], E_STREAMER_Z, objPos[2]);
+            Streamer_GetFloatData(STREAMER_TYPE_OBJECT, object_array[i], E_STREAMER_X, objPos[0]);
+            Streamer_GetFloatData(STREAMER_TYPE_OBJECT, object_array[i], E_STREAMER_Y, objPos[1]);
+            Streamer_GetFloatData(STREAMER_TYPE_OBJECT, object_array[i], E_STREAMER_Z, objPos[2]);
             
             new Float:distance = GetPlayerDistanceFromPoint(playerid, objPos[0], objPos[1], objPos[2]);
-            SendClientMessage(playerid, COLOR_GREEN, sprintf("? Encontrado modelo %d - ID:%d Dist:%0.1fm", modelid, objectArray[i], distance));
+            SendClientMessage(playerid, COLOR_GREEN, sprintf("? Encontrado modelo %d - ID:%d Dist:%0.1fm", modelid, object_array[i], distance));
             found++;
         }
     }
@@ -680,16 +675,8 @@ CMD:testmodelo(playerid, params[])
     return 1;
 }
 
-stock Lumberjack_OnPlayerPickUpPickup(playerid, pickupid)
-{
-    #pragma unused playerid, pickupid
-    return 0;
-}
-
-stock Lumberjack_OnPlayerKeyStateChg(playerid, newkeys, oldkeys)
-{
-    #pragma unused oldkeys
-    
+hook OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
+{    
     if(IsPlayerNearLumberjackPickup(playerid))
     {
         if(newkeys & KEY_YES) // Tecla Y
@@ -726,21 +713,13 @@ stock Lumberjack_OnPlayerKeyStateChg(playerid, newkeys, oldkeys)
     return 0;
 }
 
-stock Lumberjack_OnPlayerDisconnect(playerid, reason)
-{
-    #pragma unused reason
-    
+hook OnPlayerDisconnect(playerid, reason)
+{    
     HideLumberjackPickupNotif(playerid);
     
     if(LumberjackPlayer[playerid][isActive])
     {
         CancelLumberjackMinigame(playerid);
     }
-    return 1;
-}
-
-stock Lumberjack_OnGameModeInit()
-{
-    InitLumberjackSystem();
     return 1;
 }

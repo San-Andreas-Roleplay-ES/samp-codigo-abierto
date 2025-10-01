@@ -51,9 +51,7 @@ CMD:pararanim(playerid, params[])
 }
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
-{
-    Lumberjack_OnPlayerKeyStateChg(playerid, newkeys, oldkeys);
-    
+{    
     if(newkeys & KEY_SPRINT)
     {
         ClearAnimations(playerid);
