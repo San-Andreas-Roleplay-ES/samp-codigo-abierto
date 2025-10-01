@@ -210,7 +210,7 @@ stock GetNearestTree(playerid)
     
     for(new i = 0; i < LumberjackPlayer[playerid][treesFound]; i++)
     {
-        if(LumberjackPlayer[playerid][detectedTrees][i] != INVALID_STREAMER_ID)
+        if(IsValidDynamicObject(LumberjackPlayer[playerid][detectedTrees][i]))
         {
             new Float:objPos[3];
             Streamer_GetFloatData(STREAMER_TYPE_OBJECT, LumberjackPlayer[playerid][detectedTrees][i], E_STREAMER_X, objPos[0]);
@@ -303,7 +303,7 @@ stock StartLumberjackMinigame(playerid)
     }
     
     SendClientMessage(playerid, COLOR_GREEN, "Has comenzado tu jornada como talador.");
-    SendClientMessage(playerid, COLOR_GREEN, sprintf("Se encontraron %d árboles cerca de tu ubicación. ¡Ve y tálalos todos!", tree_count));
+    SendClientMessage(playerid, COLOR_GREEN, sprintf("Se encontraron %d árboles cerca de tu ubicación. ¡Ve y tálalos todos! (/talar)", tree_count));
     
     return 1;
 }
@@ -424,8 +424,14 @@ public LumberjackCuttingTimer(playerid, seconds)
     {
         new treeIndex = LumberjackPlayer[playerid][currentTree];
         
+        new Float:px, Float:py, Float:pz;
+        new Float:ox, Float:oy, Float:oz;
+
+        GetPlayerPos(playerid, px, py, pz);
+        GetDynamicObjectPos(LumberjackPlayer[playerid][detectedTrees][treeIndex], ox, oy, oz);
+
         // Destruir el objeto del árbol talado
-        if(LumberjackPlayer[playerid][detectedTrees][treeIndex] != INVALID_STREAMER_ID)
+        if(IsValidDynamicObject(LumberjackPlayer[playerid][detectedTrees][treeIndex]))
         {
             DestroyDynamicObject(LumberjackPlayer[playerid][detectedTrees][treeIndex]);
             LumberjackPlayer[playerid][detectedTrees][treeIndex] = INVALID_STREAMER_ID;
@@ -437,6 +443,9 @@ public LumberjackCuttingTimer(playerid, seconds)
             DestroyDynamicMapIcon(LumberjackPlayer[playerid][playerMapIcons][treeIndex]);
             LumberjackPlayer[playerid][playerMapIcons][treeIndex] = -1;
         }
+
+        // Crear un nuevo objeto de árbol talado (tocón)
+        CreateDynamicObject(randarg(840, 839, 838, 836, 832, 831, 830, 829, 843, 848, 844), ox + 0.5, oy - 0.5, pz, 0.0, 0.0, float(random(360)));
         
         LumberjackPlayer[playerid][treesCut]++;
         LumberjackPlayer[playerid][isCutting] = false;
