@@ -52,7 +52,7 @@ CMD:pararanim(playerid, params[])
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
-    if(newkeys & KEY_FIRE)
+    if(newkeys & KEY_SPRINT)
     {
         ClearAnimations(playerid);
     }
