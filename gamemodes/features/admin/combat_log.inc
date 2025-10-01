@@ -1,3 +1,5 @@
+#include <YSI_Coding\y_hooks>
+
 #define _qfa_included
 
 // Aca se definimos la estructura para guardar datos del último asesino en un ENUM.
