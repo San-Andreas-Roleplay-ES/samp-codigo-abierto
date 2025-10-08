@@ -57,7 +57,7 @@ stock ShowHarvesterVehicleNotif(playerid)
     new message[128];
     if(HarvesterPlayer[playerid][isActive])
     {
-        format(message, sizeof(message), "Presiona N para abandonar el trabajo de cosechador.");
+        format(message, sizeof(message), "Presiona 2 para abandonar el trabajo de cosechador.");
     }
     else
     {
@@ -101,7 +101,14 @@ public CheckHarvesterVehicleProximity()
         }
         else
         {
-            if(HarvesterPlayer[i][vehicleNotification] != -1)
+            // Si el jugador no está en una cosechadora pero tiene un trabajo activo, cancelarlo automáticamente
+            if(HarvesterPlayer[i][isActive])
+            {
+                HideHarvesterVehicleNotif(i);
+                ResetHarvesterPlayer(i);
+                SendClientMessage(i, COLOR_FADE3, "Has abandonado la cosechadora. Tu trabajo como cosechador ha finalizado automáticamente.");
+            }
+            else if(HarvesterPlayer[i][vehicleNotification] != -1)
             {
                 HideHarvesterVehicleNotif(i);
             }
@@ -192,12 +199,7 @@ hook OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
             {
                 StartHarvesterMinigame(playerid);
             }
-            return 1;
-        }
-        
-        if(newkeys & KEY_NO) // Tecla N
-        {
-            if(HarvesterPlayer[playerid][isActive])
+            else
             {
                 CancelHarvesterMinigame(playerid);
             }
