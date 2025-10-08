@@ -22,7 +22,7 @@
 #include <YSI_Coding\y_hooks>
 
 #define HARVESTER_MODEL_ID      532
-#define MAX_HARVEST_POINTS      25
+#define MAX_HARVEST_POINTS      2
 #define HARVEST_TIME           5
 
 // Lista de puntos de cosecha disponibles
@@ -222,25 +222,25 @@ public HarvesterCuttingTimer(playerid, seconds)
             HARVEST_POINTS[pointIndex][2]
         );
         
-        // Obtener posición del jugador para calcular dirección
-        new Float:px, Float:py, Float:pz;
+        // Obtener posición del jugador y ángulo hacia donde está mirando
+        new Float:px, Float:py, Float:pz, Float:playerAngle;
         GetPlayerPos(playerid, px, py, pz);
+        GetPlayerFacingAngle(playerid, playerAngle);
         
-        // Calcular posición 3 metros atrás del checkpoint desde la posición del jugador
-        new Float:angle = atan2(HARVEST_POINTS[pointIndex][1] - py, HARVEST_POINTS[pointIndex][0] - px);
-        new Float:backX = HARVEST_POINTS[pointIndex][0] - (7.0 * floatcos(angle, degrees));
-        new Float:backY = HARVEST_POINTS[pointIndex][1] - (7.0 * floatsin(angle, degrees));
+        // Calcular posición 7 metros detrás del jugador basado en su ángulo de visión
+        new Float:backX = px - (7.0 * floatcos(playerAngle, degrees));
+        new Float:backY = py - (7.0 * floatsin(playerAngle, degrees));
         
-        // Crear objeto de cosecha 7 metros atrás
+        // Crear objeto de cosecha 7 metros detrás del jugador
         CreateDynamicObject(14875, 
             backX, 
             backY, 
-            HARVEST_POINTS[pointIndex][2], 
+            pz, 
             0.0, 0.0, float(random(360))
         );
         
         // Limpiar partículas después de un tiempo
-        SetTimerEx("DeleteParticle", 1000, false, "d", particle);
+        // SetTimerEx("DeleteParticle", 1000, false, "d", particle);
         
         // Limpiar estado
         HarvesterPlayer[playerid][isHarvesting] = false;
@@ -285,10 +285,14 @@ stock FinishHarvesterMinigame(playerid)
     
     DisablePlayerCheckpoint(playerid);
     
-    new reward = 2000 + random(1001); // Entre $2000 y $3000
+    new reward = 2500 + random(3001); // Entre $2500 y $5500
     GivePlayerMoney(playerid, reward);
     
-    SendClientMessage(playerid, COLOR_LIGHTGREEN, sprintf("[DEBUG] ¡Trabajo completado! Ganaste $%d por cosechar todo el maíz.", reward));
+    // Reproducir sonido de finalización
+    PlayerPlaySound(playerid, 1183, 0.0, 0.0, 0.0);
+    
+    // Mensaje de finalización similar al lumberjack
+    SendClientMessage(playerid, COLOR_LIGHTGREEN, sprintf("¡Recolectaste $%d, por todo el maíz!", reward));
     
     ResetHarvesterPlayer(playerid);
     
