@@ -54,17 +54,13 @@ stock ShowHarvesterVehicleNotif(playerid)
         HarvesterPlayer[playerid][vehicleNotification] = -1;
     }
     
-    new message[128];
-    if(HarvesterPlayer[playerid][isActive])
+    // Solo mostrar el mensaje si el trabajo NO está activo
+    if(!HarvesterPlayer[playerid][isActive])
     {
-        format(message, sizeof(message), "Presiona 2 para abandonar el trabajo de cosechador.");
-    }
-    else
-    {
+        new message[128];
         format(message, sizeof(message), "Presiona 2 para iniciar el trabajo de cosechador.");
+        HarvesterPlayer[playerid][vehicleNotification] = CallLocalFunction("ShowTDN_Manual", "is", playerid, message);
     }
-    
-    HarvesterPlayer[playerid][vehicleNotification] = CallLocalFunction("ShowTDN_Manual", "is", playerid, message);
 }
 
 stock HideHarvesterVehicleNotif(playerid)
@@ -106,7 +102,7 @@ public CheckHarvesterVehicleProximity()
             {
                 HideHarvesterVehicleNotif(i);
                 ResetHarvesterPlayer(i);
-                SendClientMessage(i, COLOR_FADE3, "Has abandonado la cosechadora. Tu trabajo como cosechador ha finalizado automáticamente.");
+                SendClientMessage(i, COLOR_FADE3, "[DEBUG] Trabajo finalizado - saliste del vehículo.");
             }
             else if(HarvesterPlayer[i][vehicleNotification] != -1)
             {
@@ -120,22 +116,22 @@ stock StartHarvesterMinigame(playerid)
 {
     if(!IsPlayerInHarvester(playerid))
     {
-        SendClientMessage(playerid, COLOR_FADE3, "Debes estar conduciendo una cosechadora para iniciar el trabajo.");
+        SendClientMessage(playerid, COLOR_FADE3, "[DEBUG] Error: No estás en una cosechadora.");
         return 0;
     }
     
     if(HarvesterPlayer[playerid][isActive])
     {
-        SendClientMessage(playerid, COLOR_FADE3, "Ya tienes un trabajo activo como cosechador. Termina tu turno actual primero.");
+        SendClientMessage(playerid, COLOR_FADE3, "[DEBUG] Error: Trabajo ya activo.");
         return 0;
     }
     
     HarvesterPlayer[playerid][isActive] = true;
     
-    ShowHarvesterVehicleNotif(playerid);
+    // Ocultar la notificación ya que el trabajo está activo
+    HideHarvesterVehicleNotif(playerid);
     
-    SendClientMessage(playerid, COLOR_GREEN, "Has comenzado tu jornada como cosechador.");
-    SendClientMessage(playerid, COLOR_GREEN, "Maneja por los campos para cosechar cultivos.");
+    SendClientMessage(playerid, COLOR_GREEN, "[DEBUG] Trabajo iniciado - cosechador activo.");
     
     return 1;
 }
@@ -144,7 +140,7 @@ stock CancelHarvesterMinigame(playerid)
 {
     if(!HarvesterPlayer[playerid][isActive])
     {
-        SendClientMessage(playerid, COLOR_FADE3, "No tienes ningún trabajo activo como cosechador en este momento.");
+        SendClientMessage(playerid, COLOR_FADE3, "[DEBUG] Error: No hay trabajo activo.");
         return 0;
     }
     
@@ -157,7 +153,7 @@ stock CancelHarvesterMinigame(playerid)
         SetTimerEx("UpdateHarvesterNotification", 100, false, "i", playerid);
     }
     
-    SendClientMessage(playerid, COLOR_FADE3, "Abandonaste tu turno de cosechador.");
+    SendClientMessage(playerid, COLOR_FADE3, "[DEBUG] Trabajo cancelado.");
     return 1;
 }
 
@@ -215,7 +211,7 @@ CMD:iniciarcos(playerid, params[])
 {
     if(!IsPlayerInHarvester(playerid))
     {
-        SendClientMessage(playerid, COLOR_FADE3, "Debes estar conduciendo una cosechadora (modelo 532) para usar este comando.");
+        SendClientMessage(playerid, COLOR_FADE3, "[DEBUG] Debes estar en una cosechadora (ID 532).");
         return 1;
     }
     
@@ -227,7 +223,7 @@ CMD:cancelarcos(playerid, params[])
 {
     if(!HarvesterPlayer[playerid][isActive])
     {
-        SendClientMessage(playerid, COLOR_FADE3, "No tienes ningún trabajo activo como cosechador para cancelar.");
+        SendClientMessage(playerid, COLOR_FADE3, "[DEBUG] No hay trabajo activo para cancelar.");
         return 1;
     }
     
