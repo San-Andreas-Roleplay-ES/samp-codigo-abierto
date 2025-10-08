@@ -26,7 +26,7 @@
 enum HarvesterPlayerData {
     bool:isActive,
     vehicleNotification,
-    bool:hasShownMessage
+    bool:isInHarvester
 }
 
 new HarvesterPlayer[MAX_PLAYERS][HarvesterPlayerData];
@@ -35,7 +35,7 @@ stock ResetHarvesterPlayer(playerid)
 {
     HarvesterPlayer[playerid][isActive] = false;
     HarvesterPlayer[playerid][vehicleNotification] = -1;
-    HarvesterPlayer[playerid][hasShownMessage] = false;
+    HarvesterPlayer[playerid][isInHarvester] = false;
 }
 
 stock bool:IsPlayerInHarvester(playerid)
@@ -50,16 +50,31 @@ stock bool:IsPlayerInHarvester(playerid)
 
 stock ShowHarvesterVehicleNotif(playerid)
 {
-    // Solo mostrar el mensaje si el trabajo NO está activo y no lo hemos mostrado ya
-    if(!HarvesterPlayer[playerid][isActive] && !HarvesterPlayer[playerid][hasShownMessage])
+    // Ocultar mensaje anterior si existe
+    if(HarvesterPlayer[playerid][vehicleNotification] != -1)
+    {
+        CallLocalFunction("hideTDN", "ii", playerid, HarvesterPlayer[playerid][vehicleNotification]);
+        HarvesterPlayer[playerid][vehicleNotification] = -1;
+    }
+    
+    // Solo mostrar si no tiene trabajo activo
+    if(!HarvesterPlayer[playerid][isActive])
     {
         new message[128];
         format(message, sizeof(message), "Presiona 2 para iniciar el trabajo de cosechador.");
         HarvesterPlayer[playerid][vehicleNotification] = CallLocalFunction("ShowTDN_Manual", "is", playerid, message);
-        HarvesterPlayer[playerid][hasShownMessage] = true;
         
-        // Ocultar el mensaje después de 3 segundos
-        SetTimerEx("HideHarvesterVehicleNotif", 3000, false, "i", playerid);
+        // Programar ocultación después de 3 segundos
+        SetTimerEx("AutoHideHarvesterNotif", 3000, false, "i", playerid);
+    }
+}
+
+forward AutoHideHarvesterNotif(playerid);
+public AutoHideHarvesterNotif(playerid)
+{
+    if(IsPlayerConnected(playerid))
+    {
+        HideHarvesterVehicleNotif(playerid);
     }
 }
 
@@ -69,15 +84,6 @@ stock HideHarvesterVehicleNotif(playerid)
     {
         CallLocalFunction("hideTDN", "ii", playerid, HarvesterPlayer[playerid][vehicleNotification]);
         HarvesterPlayer[playerid][vehicleNotification] = -1;
-    }
-}
-
-forward ResetHarvesterMessageFlag(playerid);
-public ResetHarvesterMessageFlag(playerid)
-{
-    if(IsPlayerConnected(playerid))
-    {
-        HarvesterPlayer[playerid][hasShownMessage] = false;
     }
 }
 
@@ -97,31 +103,32 @@ public CheckHarvesterVehicleProximity()
     {
         if(!IsPlayerConnected(i)) continue;
         
-        if(IsPlayerInHarvester(i))
+        new bool:currentlyInHarvester = IsPlayerInHarvester(i);
+        
+        // Detectar cuando ENTRA al vehículo cosechadora
+        if(currentlyInHarvester && !HarvesterPlayer[i][isInHarvester])
         {
-            // Solo mostrar el mensaje una vez cuando recién se sube (si no tiene trabajo activo)
-            if(!HarvesterPlayer[i][isActive] && !HarvesterPlayer[i][hasShownMessage])
+            HarvesterPlayer[i][isInHarvester] = true;
+            
+            // Mostrar mensaje solo si no tiene trabajo activo
+            if(!HarvesterPlayer[i][isActive])
             {
                 ShowHarvesterVehicleNotif(i);
             }
         }
-        else
+        // Detectar cuando SALE del vehículo cosechadora
+        else if(!currentlyInHarvester && HarvesterPlayer[i][isInHarvester])
         {
-            // Si el jugador no está en una cosechadora pero tiene un trabajo activo, cancelarlo automáticamente
+            HarvesterPlayer[i][isInHarvester] = false;
+            
+            // Ocultar cualquier mensaje visible
+            HideHarvesterVehicleNotif(i);
+            
+            // Si tenía trabajo activo, cancelarlo
             if(HarvesterPlayer[i][isActive])
             {
-                HideHarvesterVehicleNotif(i);
                 ResetHarvesterPlayer(i);
                 SendClientMessage(i, COLOR_FADE3, "[DEBUG] Trabajo finalizado - saliste del vehículo.");
-            }
-            else 
-            {
-                // Si sale del vehículo, resetear la flag para que pueda ver el mensaje de nuevo cuando se vuelva a subir
-                if(HarvesterPlayer[i][hasShownMessage])
-                {
-                    HideHarvesterVehicleNotif(i);
-                    HarvesterPlayer[i][hasShownMessage] = false;
-                }
             }
         }
     }
@@ -163,10 +170,11 @@ stock CancelHarvesterMinigame(playerid)
     
     ResetHarvesterPlayer(playerid);
     
-    // Si está en la cosechadora, permitir que vuelva a ver el mensaje después de 1 segundo
+    // Si está en la cosechadora, mostrar mensaje de nuevo por 3 segundos
     if(IsPlayerInHarvester(playerid))
     {
-        SetTimerEx("ResetHarvesterMessageFlag", 1000, false, "i", playerid);
+        HarvesterPlayer[playerid][isInHarvester] = true; // Mantener el estado
+        ShowHarvesterVehicleNotif(playerid);
     }
     
     SendClientMessage(playerid, COLOR_FADE3, "[DEBUG] Trabajo cancelado.");
