@@ -222,20 +222,22 @@ public HarvesterCuttingTimer(playerid, seconds)
             HARVEST_POINTS[pointIndex][2]
         );
         
-        // Obtener posición del jugador y ángulo hacia donde está mirando
-        new Float:px, Float:py, Float:pz, Float:playerAngle;
+        // Obtener posición del jugador para calcular dirección hacia el checkpoint
+        new Float:px, Float:py, Float:pz;
         GetPlayerPos(playerid, px, py, pz);
-        GetPlayerFacingAngle(playerid, playerAngle);
         
-        // Calcular posición 7 metros detrás del jugador basado en su ángulo de visión
-        new Float:backX = px - (7.0 * floatcos(playerAngle, degrees));
-        new Float:backY = py - (7.0 * floatsin(playerAngle, degrees));
+        // Calcular ángulo desde el jugador hacia el checkpoint
+        new Float:angle = atan2(HARVEST_POINTS[pointIndex][1] - py, HARVEST_POINTS[pointIndex][0] - px);
         
-        // Crear objeto de cosecha 7 metros detrás del jugador
+        // Calcular posición 7 metros atrás del checkpoint (opuesto a la dirección del jugador)
+        new Float:backX = HARVEST_POINTS[pointIndex][0] - (7.0 * floatcos(angle, degrees));
+        new Float:backY = HARVEST_POINTS[pointIndex][1] - (7.0 * floatsin(angle, degrees));
+        
+        // Crear objeto de cosecha 7 metros atrás del checkpoint
         CreateDynamicObject(14875, 
             backX, 
             backY, 
-            pz, 
+            HARVEST_POINTS[pointIndex][2], 
             0.0, 0.0, float(random(360))
         );
         
@@ -289,7 +291,7 @@ stock FinishHarvesterMinigame(playerid)
     GivePlayerMoney(playerid, reward);
     
     // Reproducir sonido de finalización
-    PlayerPlaySound(playerid, 1183, 0.0, 0.0, 0.0);
+    PlayerPlaySound(playerid, 183, 0.0, 0.0, 0.0);
     
     // Mensaje de finalización similar al lumberjack
     SendClientMessage(playerid, COLOR_LIGHTGREEN, sprintf("¡Recolectaste $%d, por todo el maíz!", reward));
