@@ -105,7 +105,7 @@ public CheckHarvesterVehicleProximity()
         
         new bool:currentlyInHarvester = IsPlayerInHarvester(i);
         
-        // Detectar cuando ENTRA al vehículo cosechadora
+        // Detectar cuando ENTRA a la cosechadora
         if(currentlyInHarvester && !HarvesterPlayer[i][isInHarvester])
         {
             HarvesterPlayer[i][isInHarvester] = true;
@@ -116,7 +116,7 @@ public CheckHarvesterVehicleProximity()
                 ShowHarvesterVehicleNotif(i);
             }
         }
-        // Detectar cuando SALE del vehículo cosechadora
+        // Detectar cuando SALE de la cosechadora
         else if(!currentlyInHarvester && HarvesterPlayer[i][isInHarvester])
         {
             HarvesterPlayer[i][isInHarvester] = false;
