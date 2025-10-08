@@ -85,6 +85,8 @@ main()
 
 public OnGameModeInit()
 {
+	CA_Init();
+	RapelSystem_Init();
 	SendRconCommand("hostname "SERVER_NAME" | "SERVER_URL" [Código abierto]");
 	SetGameModeText("Servidor de Prueba");
 
@@ -98,4 +100,5 @@ public OnGameModeInit()
 	AddPlayerClassEx(8, 285, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	AddPlayerClassEx(9, 287, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	return 1;
+
 }
