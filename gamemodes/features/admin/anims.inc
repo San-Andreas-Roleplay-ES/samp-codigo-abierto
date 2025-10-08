@@ -49,12 +49,3 @@ CMD:pararanim(playerid, params[])
     ClearAnimations(playerid);
     return 1;
 }
-
-public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
-{    
-    if(newkeys & KEY_SPRINT)
-    {
-        ClearAnimations(playerid);
-    }
-    return 1;
-}
