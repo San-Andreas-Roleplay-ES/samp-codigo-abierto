@@ -207,21 +207,34 @@ public HarvesterCuttingTimer(playerid, seconds)
         // Cosecha completada
         new pointIndex = HarvesterPlayer[playerid][currentCheckpoint];
         
-        // Detener sonido de cosecha
-        PlayerPlaySound(playerid, 1186, 0.0, 0.0, 0.0); // Sonido silencioso para detener el anterior
-        
         // Crear partículas
-        new particle = CreateDynamicObject(18679, 
+        // new particle = CreateDynamicObject(18679, 
+        //     HARVEST_POINTS[pointIndex][0], 
+        //     HARVEST_POINTS[pointIndex][1], 
+        //     HARVEST_POINTS[pointIndex][2], 
+        //     0.0, 0.0, 0.0
+        // );
+        
+        // Sonido al completar cosecha
+        PlayerPlaySound(playerid, 1139, 
             HARVEST_POINTS[pointIndex][0], 
             HARVEST_POINTS[pointIndex][1], 
-            HARVEST_POINTS[pointIndex][2], 
-            0.0, 0.0, 0.0
+            HARVEST_POINTS[pointIndex][2]
         );
         
-        // Crear objeto de cosecha
+        // Obtener posición del jugador para calcular dirección
+        new Float:px, Float:py, Float:pz;
+        GetPlayerPos(playerid, px, py, pz);
+        
+        // Calcular posición 3 metros atrás del checkpoint desde la posición del jugador
+        new Float:angle = atan2(HARVEST_POINTS[pointIndex][1] - py, HARVEST_POINTS[pointIndex][0] - px);
+        new Float:backX = HARVEST_POINTS[pointIndex][0] - (7.0 * floatcos(angle, degrees));
+        new Float:backY = HARVEST_POINTS[pointIndex][1] - (7.0 * floatsin(angle, degrees));
+        
+        // Crear objeto de cosecha 7 metros atrás
         CreateDynamicObject(14875, 
-            HARVEST_POINTS[pointIndex][0] + 0.5, 
-            HARVEST_POINTS[pointIndex][1] - 0.5, 
+            backX, 
+            backY, 
             HARVEST_POINTS[pointIndex][2], 
             0.0, 0.0, float(random(360))
         );
@@ -349,12 +362,6 @@ public CheckHarvesterVehicleProximity()
                     PlayerTextDrawDestroy(i, HarvesterPlayer[i][harvestTextDraw]);
                 }
                 
-                // Detener sonido si estaba cosechando
-                if(HarvesterPlayer[i][isHarvesting])
-                {
-                    PlayerPlaySound(i, 1186, 0.0, 0.0, 0.0); // Sonido silencioso para detener el anterior
-                }
-                
                 // Descongelar jugador
                 TogglePlayerControllable(i, 1);
                 
@@ -418,12 +425,6 @@ stock CancelHarvesterMinigame(playerid)
         PlayerTextDrawDestroy(playerid, HarvesterPlayer[playerid][harvestTextDraw]);
     }
     
-    // Detener sonido si estaba cosechando
-    if(HarvesterPlayer[playerid][isHarvesting])
-    {
-        PlayerPlaySound(playerid, 1186, 0.0, 0.0, 0.0); // Sonido silencioso para detener el anterior
-    }
-    
     // Descongelar jugador si estaba congelado
     TogglePlayerControllable(playerid, 1);
     
@@ -484,14 +485,6 @@ hook OnPlayerEnterCheckpoint(playerid)
     
     // Congelar jugador
     TogglePlayerControllable(playerid, 0);
-    
-    // Reproducir sonido de cosecha durante todo el proceso
-    new pointIndex = HarvesterPlayer[playerid][harvestPoints][HarvesterPlayer[playerid][checkpointsCompleted]];
-    PlayerPlaySound(playerid, 1140, 
-        HARVEST_POINTS[pointIndex][0], 
-        HARVEST_POINTS[pointIndex][1], 
-        HARVEST_POINTS[pointIndex][2]
-    );
     
     SendClientMessage(playerid, COLOR_GREEN, "[DEBUG] Cosechando maíz...");
     
