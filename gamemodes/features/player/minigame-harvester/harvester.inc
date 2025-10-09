@@ -22,8 +22,9 @@
 #include <YSI_Coding\y_hooks>
 
 #define HARVESTER_MODEL_ID      532
-#define MAX_HARVEST_POINTS      25
+#define MAX_HARVEST_POINTS      5
 #define HARVEST_TIME           5
+#define CORN_COLOR              0xC2A636FF // Color amarillento del maíz
 
 // Lista de puntos de cosecha disponibles
 new const Float:HARVEST_POINTS[][3] = 
@@ -51,6 +52,7 @@ enum HarvesterPlayerData {
     currentCheckpoint,
     totalCheckpoints,
     checkpointsCompleted,
+    objectsRemaining,
     harvestTimer,
     PlayerText:harvestTextDraw
 }
@@ -69,6 +71,7 @@ stock ResetHarvesterPlayer(playerid)
     HarvesterPlayer[playerid][currentCheckpoint] = -1;
     HarvesterPlayer[playerid][totalCheckpoints] = 0;
     HarvesterPlayer[playerid][checkpointsCompleted] = 0;
+    HarvesterPlayer[playerid][objectsRemaining] = 0;
     HarvesterPlayer[playerid][harvestTimer] = 0;
     HarvesterPlayer[playerid][harvestTextDraw] = PlayerText:INVALID_TEXT_DRAW;
     
@@ -157,11 +160,11 @@ stock CreateHarvestObjects(playerid)
     {
         new pointIndex = HarvesterPlayer[playerid][harvestPoints][i];
         
-        // Crear objeto visible solo para el jugador
+        // Crear objeto visible solo para el jugador usando coordenadas originales
         HarvesterPlayer[playerid][harvestObjects][i] = CreatePlayerObject(playerid, 3409,
             HARVEST_POINTS[pointIndex][0],
             HARVEST_POINTS[pointIndex][1], 
-            HARVEST_POINTS[pointIndex][2],
+            HARVEST_POINTS[pointIndex][2] - 0.5, // Restar 0.5 unidades para estar más cerca del suelo
             0.0, 0.0, float(random(360))
         );
         
@@ -170,8 +173,11 @@ stock CreateHarvestObjects(playerid)
             HARVEST_POINTS[pointIndex][0],
             HARVEST_POINTS[pointIndex][1], 
             HARVEST_POINTS[pointIndex][2],
-            0, 0xC2A636FF, -1, -1, playerid); // Icono amarillento color maiz
+            0, CORN_COLOR, -1, -1, playerid); // Icono amarillento color maiz
     }
+    
+    // Establecer contador de objetos restantes
+    HarvesterPlayer[playerid][objectsRemaining] = MAX_HARVEST_POINTS;
 }
 
 stock DestroyHarvestObjects(playerid)
@@ -223,6 +229,42 @@ stock SetNextHarvestCheckpoint(playerid)
     return 1;
 }
 */
+
+stock HarvestObject(playerid, objectIndex)
+{
+    if(objectIndex < 0 || objectIndex >= MAX_HARVEST_POINTS) return 0;
+    if(HarvesterPlayer[playerid][harvestObjects][objectIndex] == INVALID_OBJECT_ID) return 0;
+    
+    // Reproducir sonido una sola vez
+    PlayerPlaySound(playerid, 36400, 0.0, 0.0, 0.0);
+    
+    // Eliminar objeto
+    DestroyPlayerObject(playerid, HarvesterPlayer[playerid][harvestObjects][objectIndex]);
+    HarvesterPlayer[playerid][harvestObjects][objectIndex] = INVALID_OBJECT_ID;
+    
+    // Eliminar mapicon
+    if(HarvesterPlayer[playerid][harvestMapIcons][objectIndex] != STREAMER_TAG_MAP_ICON:INVALID_STREAMER_ID)
+    {
+        DestroyDynamicMapIcon(HarvesterPlayer[playerid][harvestMapIcons][objectIndex]);
+        HarvesterPlayer[playerid][harvestMapIcons][objectIndex] = STREAMER_TAG_MAP_ICON:INVALID_STREAMER_ID;
+    }
+    
+    // Disminuir contador
+    HarvesterPlayer[playerid][objectsRemaining]--;
+    
+    SendClientMessage(playerid, COLOR_GREEN, sprintf("[DEBUG] Maíz cosechado! Restantes: %d/%d", 
+        HarvesterPlayer[playerid][objectsRemaining], MAX_HARVEST_POINTS));
+    
+    // Verificar si terminó
+    if(HarvesterPlayer[playerid][objectsRemaining] <= 0)
+    {
+        // Marcar como inactivo inmediatamente para evitar múltiples llamadas
+        HarvesterPlayer[playerid][isActive] = false;
+        FinishHarvesterMinigame(playerid, true); // Explícitamente indicar que debe dar recompensa
+    }
+    
+    return 1;
+}
 
 forward ShowHarvesterStartMessage(playerid);
 public ShowHarvesterStartMessage(playerid)
@@ -355,20 +397,23 @@ public DeleteHarvesterParticle(objectid)
     return DestroyDynamicObject(objectid);
 }
 
-stock FinishHarvesterMinigame(playerid)
+stock FinishHarvesterMinigame(playerid, bool:giveReward = true)
 {
     if(!HarvesterPlayer[playerid][isActive]) return 0;
     
     DisablePlayerCheckpoint(playerid);
     
-    new reward = 2500 + random(3001); // Entre $2500 y $5500
-    GivePlayerMoney(playerid, reward);
-    
-    // Reproducir sonido de finalización
-    PlayerPlaySound(playerid, 183, 0.0, 0.0, 0.0);
-    
-    // Mensaje de finalización similar al lumberjack
-    SendClientMessage(playerid, COLOR_LIGHTGREEN, sprintf("¡Recolectaste $%d, por todo el maíz!", reward));
+    if(giveReward)
+    {
+        new reward = 2500 + random(3001); // Entre $2500 y $5500
+        GivePlayerMoney(playerid, reward);
+        
+        // Reproducir sonido de finalización
+        PlayerPlaySound(playerid, 183, 0.0, 0.0, 0.0);
+        
+        // Mensaje de finalización similar al lumberjack
+        SendClientMessage(playerid, COLOR_LIGHTGREEN, sprintf("¡Recolectaste $%d, por todo el maíz!", reward));
+    }
     
     ResetHarvesterPlayer(playerid);
     
@@ -478,7 +523,9 @@ stock StartHarvesterMinigame(playerid)
     CreateHarvestObjects(playerid);
     
     // Mostrar mensaje inicial "Cosecha todo el maiz" durante 2.5 segundos
-    HarvesterPlayer[playerid][harvestTextDraw] = CreatePlayerTextDraw(playerid, 325.000, 369.000, "Cosecha todo el maiz");
+    new cornMessage[64];
+    format(cornMessage, sizeof(cornMessage), "Cosecha todo el ~y~maiz");
+    HarvesterPlayer[playerid][harvestTextDraw] = CreatePlayerTextDraw(playerid, 325.000, 369.000, cornMessage);
     PlayerTextDrawLetterSize(playerid, HarvesterPlayer[playerid][harvestTextDraw], 0.300, 1.500);
     PlayerTextDrawAlignment(playerid, HarvesterPlayer[playerid][harvestTextDraw], 2);
     PlayerTextDrawColor(playerid, HarvesterPlayer[playerid][harvestTextDraw], -1);
@@ -493,7 +540,7 @@ stock StartHarvesterMinigame(playerid)
     SetTimerEx("ShowHarvesterStartMessage", 2500, false, "i", playerid);
     
     SendClientMessage(playerid, COLOR_GREEN, "[DEBUG] Trabajo iniciado - cosechador activo.");
-    SendClientMessage(playerid, COLOR_GREEN, sprintf("[DEBUG] Se generaron %d objetos de maíz. Acércate a ellos para cosechar.", MAX_HARVEST_POINTS));
+    SendClientMessage(playerid, COLOR_GREEN, sprintf("[DEBUG] Se generaron %d objetos de maíz. Pasa por encima de ellos para cosechar.", MAX_HARVEST_POINTS));
     
     return 1;
 }
@@ -523,7 +570,9 @@ stock CancelHarvesterMinigame(playerid)
     // Descongelar jugador si estaba congelado
     TogglePlayerControllable(playerid, 1);
     
+    // Usar FinishHarvesterMinigame pero sin sonido ni pago
     ResetHarvesterPlayer(playerid);
+    SendClientMessage(playerid, COLOR_FADE3, "[DEBUG] Trabajo cancelado.");
     
     // Si está en la cosechadora, mostrar mensaje de nuevo por 3 segundos
     if(IsPlayerInHarvester(playerid))
@@ -532,7 +581,6 @@ stock CancelHarvesterMinigame(playerid)
         ShowHarvesterVehicleNotif(playerid);
     }
     
-    SendClientMessage(playerid, COLOR_FADE3, "[DEBUG] Trabajo cancelado.");
     return 1;
 }
 
@@ -544,6 +592,37 @@ hook OnScriptInit()
     }
     
     SetTimer("CheckHarvesterVehicleProximity", 1000, true);
+    return 1;
+}
+
+hook OnPlayerUpdate(playerid)
+{
+    // Solo verificar si está activo el miniguego
+    if(!HarvesterPlayer[playerid][isActive]) return 1;
+    if(!IsPlayerInHarvester(playerid)) return 1;
+    
+    new Float:px, Float:py, Float:pz;
+    GetPlayerPos(playerid, px, py, pz);
+    
+    // Verificar proximidad a cada objeto
+    for(new i = 0; i < MAX_HARVEST_POINTS; i++)
+    {
+        if(HarvesterPlayer[playerid][harvestObjects][i] == INVALID_OBJECT_ID) continue;
+        
+        new pointIndex = HarvesterPlayer[playerid][harvestPoints][i];
+        new Float:distance = GetPlayerDistanceFromPoint(playerid, 
+            HARVEST_POINTS[pointIndex][0], 
+            HARVEST_POINTS[pointIndex][1], 
+            HARVEST_POINTS[pointIndex][2]
+        );
+        
+        // Si está dentro de 3 metros, cosechar
+        if(distance <= 3.0)
+        {
+            HarvestObject(playerid, i);
+        }
+    }
+    
     return 1;
 }
 
