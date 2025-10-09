@@ -22,7 +22,7 @@
 #include <YSI_Coding\y_hooks>
 
 #define HARVESTER_MODEL_ID      532
-#define MAX_HARVEST_POINTS      2
+#define MAX_HARVEST_POINTS      25
 #define HARVEST_TIME           5
 
 // Lista de puntos de cosecha disponibles
@@ -46,6 +46,8 @@ enum HarvesterPlayerData {
     bool:isInHarvester,
     bool:isHarvesting,
     harvestPoints[MAX_HARVEST_POINTS],
+    harvestObjects[MAX_HARVEST_POINTS],
+    STREAMER_TAG_MAP_ICON:harvestMapIcons[MAX_HARVEST_POINTS],
     currentCheckpoint,
     totalCheckpoints,
     checkpointsCompleted,
@@ -57,6 +59,9 @@ new HarvesterPlayer[MAX_PLAYERS][HarvesterPlayerData];
 
 stock ResetHarvesterPlayer(playerid)
 {
+    // Limpiar objetos y mapicons antes de resetear
+    DestroyHarvestObjects(playerid);
+    
     HarvesterPlayer[playerid][isActive] = false;
     HarvesterPlayer[playerid][vehicleNotification] = -1;
     HarvesterPlayer[playerid][isInHarvester] = false;
@@ -70,6 +75,8 @@ stock ResetHarvesterPlayer(playerid)
     for(new i = 0; i < MAX_HARVEST_POINTS; i++)
     {
         HarvesterPlayer[playerid][harvestPoints][i] = -1;
+        HarvesterPlayer[playerid][harvestObjects][i] = INVALID_OBJECT_ID;
+        HarvesterPlayer[playerid][harvestMapIcons][i] = STREAMER_TAG_MAP_ICON:INVALID_STREAMER_ID;
     }
     
     DisablePlayerCheckpoint(playerid);
@@ -143,6 +150,51 @@ stock GenerateRandomHarvestPoints(playerid)
     HarvesterPlayer[playerid][totalCheckpoints] = MAX_HARVEST_POINTS;
 }
 
+stock CreateHarvestObjects(playerid)
+{
+    // Crear 25 objetos model ID 3409 en las coordenadas seleccionadas
+    for(new i = 0; i < MAX_HARVEST_POINTS; i++)
+    {
+        new pointIndex = HarvesterPlayer[playerid][harvestPoints][i];
+        
+        // Crear objeto visible solo para el jugador
+        HarvesterPlayer[playerid][harvestObjects][i] = CreatePlayerObject(playerid, 3409,
+            HARVEST_POINTS[pointIndex][0],
+            HARVEST_POINTS[pointIndex][1], 
+            HARVEST_POINTS[pointIndex][2],
+            0.0, 0.0, float(random(360))
+        );
+        
+        // Crear mapicon en el mapa (similar al lumberjack)
+        HarvesterPlayer[playerid][harvestMapIcons][i] = CreateDynamicMapIcon(
+            HARVEST_POINTS[pointIndex][0],
+            HARVEST_POINTS[pointIndex][1], 
+            HARVEST_POINTS[pointIndex][2],
+            0, 0xC2A636FF, -1, -1, playerid); // Icono amarillento color maiz
+    }
+}
+
+stock DestroyHarvestObjects(playerid)
+{
+    // Eliminar todos los objetos y mapicons
+    for(new i = 0; i < MAX_HARVEST_POINTS; i++)
+    {
+        if(HarvesterPlayer[playerid][harvestObjects][i] != INVALID_OBJECT_ID)
+        {
+            DestroyPlayerObject(playerid, HarvesterPlayer[playerid][harvestObjects][i]);
+            HarvesterPlayer[playerid][harvestObjects][i] = INVALID_OBJECT_ID;
+        }
+        
+        if(HarvesterPlayer[playerid][harvestMapIcons][i] != STREAMER_TAG_MAP_ICON:INVALID_STREAMER_ID)
+        {
+            DestroyDynamicMapIcon(HarvesterPlayer[playerid][harvestMapIcons][i]);
+            HarvesterPlayer[playerid][harvestMapIcons][i] = STREAMER_TAG_MAP_ICON:INVALID_STREAMER_ID;
+        }
+    }
+}
+
+/*
+// Funciones de checkpoints comentadas - ahora se usan objetos directamente
 stock SetNextHarvestCheckpoint(playerid)
 {
     if(HarvesterPlayer[playerid][checkpointsCompleted] >= HarvesterPlayer[playerid][totalCheckpoints])
@@ -170,7 +222,28 @@ stock SetNextHarvestCheckpoint(playerid)
     
     return 1;
 }
+*/
 
+forward ShowHarvesterStartMessage(playerid);
+public ShowHarvesterStartMessage(playerid)
+{
+    if(!IsPlayerConnected(playerid) || !HarvesterPlayer[playerid][isActive])
+    {
+        return 0;
+    }
+    
+    // Ocultar el textdraw después de 2.5 segundos
+    if(HarvesterPlayer[playerid][harvestTextDraw] != PlayerText:INVALID_TEXT_DRAW)
+    {
+        PlayerTextDrawDestroy(playerid, HarvesterPlayer[playerid][harvestTextDraw]);
+        HarvesterPlayer[playerid][harvestTextDraw] = PlayerText:INVALID_TEXT_DRAW;
+    }
+    
+    return 1;
+}
+
+/*
+// Timer de cosecha comentado - ya no se utiliza
 forward HarvesterCuttingTimer(playerid, seconds);
 public HarvesterCuttingTimer(playerid, seconds)
 {
@@ -271,6 +344,7 @@ public HarvesterCuttingTimer(playerid, seconds)
     
     return 1;
 }
+*/
 
 forward DeleteHarvesterParticle(objectid);
 public DeleteHarvesterParticle(objectid)
@@ -400,11 +474,26 @@ stock StartHarvesterMinigame(playerid)
     // Generar puntos aleatorios de cosecha
     GenerateRandomHarvestPoints(playerid);
     
-    SendClientMessage(playerid, COLOR_GREEN, "[DEBUG] Trabajo iniciado - cosechador activo.");
-    SendClientMessage(playerid, COLOR_GREEN, sprintf("[DEBUG] Se generaron %d puntos de cosecha. Ve al primer checkpoint.", MAX_HARVEST_POINTS));
+    // Crear los objetos y mapicons
+    CreateHarvestObjects(playerid);
     
-    // Establecer primer checkpoint
-    SetNextHarvestCheckpoint(playerid);
+    // Mostrar mensaje inicial "Cosecha todo el maiz" durante 2.5 segundos
+    HarvesterPlayer[playerid][harvestTextDraw] = CreatePlayerTextDraw(playerid, 325.000, 369.000, "Cosecha todo el maiz");
+    PlayerTextDrawLetterSize(playerid, HarvesterPlayer[playerid][harvestTextDraw], 0.300, 1.500);
+    PlayerTextDrawAlignment(playerid, HarvesterPlayer[playerid][harvestTextDraw], 2);
+    PlayerTextDrawColor(playerid, HarvesterPlayer[playerid][harvestTextDraw], -1);
+    PlayerTextDrawSetShadow(playerid, HarvesterPlayer[playerid][harvestTextDraw], 1);
+    PlayerTextDrawSetOutline(playerid, HarvesterPlayer[playerid][harvestTextDraw], 1);
+    PlayerTextDrawBackgroundColor(playerid, HarvesterPlayer[playerid][harvestTextDraw], 150);
+    PlayerTextDrawFont(playerid, HarvesterPlayer[playerid][harvestTextDraw], 1);
+    PlayerTextDrawSetProportional(playerid, HarvesterPlayer[playerid][harvestTextDraw], true);
+    PlayerTextDrawShow(playerid, HarvesterPlayer[playerid][harvestTextDraw]);
+    
+    // Programar ocultación del mensaje después de 2.5 segundos
+    SetTimerEx("ShowHarvesterStartMessage", 2500, false, "i", playerid);
+    
+    SendClientMessage(playerid, COLOR_GREEN, "[DEBUG] Trabajo iniciado - cosechador activo.");
+    SendClientMessage(playerid, COLOR_GREEN, sprintf("[DEBUG] Se generaron %d objetos de maíz. Acércate a ellos para cosechar.", MAX_HARVEST_POINTS));
     
     return 1;
 }
@@ -475,6 +564,8 @@ hook OnPlayerDisconnect(playerid, reason)
     return 1;
 }
 
+/*
+// Hook de checkpoint comentado - ahora se usan objetos directamente
 hook OnPlayerEnterCheckpoint(playerid)
 {
     if(!HarvesterPlayer[playerid][isActive] || HarvesterPlayer[playerid][isHarvesting])
@@ -499,6 +590,7 @@ hook OnPlayerEnterCheckpoint(playerid)
     
     return 1;
 }
+*/
 
 hook OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {    
