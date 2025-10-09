@@ -22,7 +22,7 @@
 #include <YSI_Coding\y_hooks>
 
 #define HARVESTER_MODEL_ID      532
-#define MAX_HARVEST_POINTS      5
+#define MAX_HARVEST_POINTS      2
 #define HARVEST_TIME           5
 #define CORN_COLOR              0xC2A636FF // Color amarillento del maíz
 
@@ -258,8 +258,7 @@ stock HarvestObject(playerid, objectIndex)
     // Verificar si terminó
     if(HarvesterPlayer[playerid][objectsRemaining] <= 0)
     {
-        // Marcar como inactivo inmediatamente para evitar múltiples llamadas
-        HarvesterPlayer[playerid][isActive] = false;
+        // Llamar a finalización ANTES de marcar como inactivo
         FinishHarvesterMinigame(playerid, true); // Explícitamente indicar que debe dar recompensa
     }
     
@@ -401,6 +400,9 @@ stock FinishHarvesterMinigame(playerid, bool:giveReward = true)
 {
     if(!HarvesterPlayer[playerid][isActive]) return 0;
     
+    // Marcar como inactivo inmediatamente para evitar múltiples llamadas
+    HarvesterPlayer[playerid][isActive] = false;
+    
     DisablePlayerCheckpoint(playerid);
     
     if(giveReward)
@@ -408,8 +410,8 @@ stock FinishHarvesterMinigame(playerid, bool:giveReward = true)
         new reward = 2500 + random(3001); // Entre $2500 y $5500
         GivePlayerMoney(playerid, reward);
         
-        // Reproducir sonido de finalización
-        PlayerPlaySound(playerid, 183, 0.0, 0.0, 0.0);
+        // Reproducir sonido de finalización - COMENTADO TEMPORALMENTE
+        // PlayerPlaySound(playerid, 183, 0.0, 0.0, 0.0);
         
         // Mensaje de finalización similar al lumberjack
         SendClientMessage(playerid, COLOR_LIGHTGREEN, sprintf("¡Recolectaste $%d, por todo el maíz!", reward));
