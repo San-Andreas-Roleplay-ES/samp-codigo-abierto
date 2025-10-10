@@ -1,24 +1,3 @@
-// SAN ANDREAS ROLEPLAY
-// Copyright (c) 2021 - 2025 pigeon
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-
 #include <YSI_Coding\y_hooks>
 
 #define HARVESTER_MODEL_ID      532
@@ -235,35 +214,40 @@ stock HarvestObject(playerid, objectIndex)
     if(objectIndex < 0 || objectIndex >= MAX_HARVEST_POINTS) return 0;
     if(HarvesterPlayer[playerid][harvestObjects][objectIndex] == INVALID_OBJECT_ID) return 0;
     
-    // Reproducir sonido una sola vez
     PlayerPlaySound(playerid, 36400, 0.0, 0.0, 0.0);
     
-    // Eliminar objeto
     DestroyPlayerObject(playerid, HarvesterPlayer[playerid][harvestObjects][objectIndex]);
     HarvesterPlayer[playerid][harvestObjects][objectIndex] = INVALID_OBJECT_ID;
     
-    // Eliminar mapicon
     if(HarvesterPlayer[playerid][harvestMapIcons][objectIndex] != STREAMER_TAG_MAP_ICON:INVALID_STREAMER_ID)
     {
         DestroyDynamicMapIcon(HarvesterPlayer[playerid][harvestMapIcons][objectIndex]);
         HarvesterPlayer[playerid][harvestMapIcons][objectIndex] = STREAMER_TAG_MAP_ICON:INVALID_STREAMER_ID;
     }
     
-    // Disminuir contador
     HarvesterPlayer[playerid][objectsRemaining]--;
     
     SendClientMessage(playerid, COLOR_GREEN, sprintf("[DEBUG] Maíz cosechado! Restantes: %d/%d", 
         HarvesterPlayer[playerid][objectsRemaining], MAX_HARVEST_POINTS));
     
-    // Verificar si terminó
+    new vehicleid = GetPlayerVehicleID(playerid);
+    if(IsValidVehicle(vehicleid) && GetVehicleModel(vehicleid) == HARVESTER_MODEL_ID)
+    {
+        new Float:tubePos[3];
+        GetPosNearVehiclePart(vehicleid, VEH_PART_LRTIRE, tubePos[0], tubePos[1], tubePos[2], 0.0);
+        tubePos[2] += 1.0;
+        
+        CreateDynamicObject(2901, tubePos[0], tubePos[1], tubePos[2], 0.0, 0.0, 0.0);
+    }
+    
     if(HarvesterPlayer[playerid][objectsRemaining] <= 0)
     {
-        // Llamar a finalización ANTES de marcar como inactivo
-        FinishHarvesterMinigame(playerid, true); // Explícitamente indicar que debe dar recompensa
+        FinishHarvesterMinigame(playerid, true);
     }
     
     return 1;
 }
+
 
 forward ShowHarvesterStartMessage(playerid);
 public ShowHarvesterStartMessage(playerid)
@@ -618,8 +602,7 @@ hook OnPlayerUpdate(playerid)
             HARVEST_POINTS[pointIndex][2]
         );
         
-        // Si está dentro de 3 metros, cosechar
-        if(distance <= 3.0)
+        if(distance <= .0)
         {
             HarvestObject(playerid, i);
         }
