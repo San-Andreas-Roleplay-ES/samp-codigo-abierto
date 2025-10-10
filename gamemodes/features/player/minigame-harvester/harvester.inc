@@ -602,7 +602,7 @@ hook OnPlayerUpdate(playerid)
             HARVEST_POINTS[pointIndex][2]
         );
         
-        if(distance <= .0)
+        if(distance <= 4.0)
         {
             HarvestObject(playerid, i);
         }
