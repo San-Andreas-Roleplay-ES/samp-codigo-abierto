@@ -21,3 +21,4 @@
 
 #include "features/admin/cmd_admin"
 #include "features/admin/combat_log"
+#include "features/admin/vehicle_debug"
