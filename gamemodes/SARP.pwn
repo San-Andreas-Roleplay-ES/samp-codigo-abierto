@@ -73,6 +73,7 @@
 //features
 #include "features/admin/header"
 #include "features/player/header"
+#include "features/actors/core"
 
 #include "features/breach_shotgun.inc"
 

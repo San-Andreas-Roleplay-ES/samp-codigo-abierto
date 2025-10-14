@@ -50,12 +50,4 @@ CMD:pararanim(playerid, params[])
     return 1;
 }
 
-public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
-{    
-    if(newkeys & KEY_FIRE)
-    {
-       
-        ClearAnimations(playerid);
-    }
-    return 1;
-}
+
