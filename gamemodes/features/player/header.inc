@@ -23,6 +23,7 @@
 #include "features/player/chat"
 #include "features/player/minigame-lumberjack/header"
 #include "features/player/color"
+#include "features/player/camaras"
 
 CMD:ayuda(playerid, params[])
 {
@@ -97,6 +98,15 @@ CMD:ayuda(playerid, params[])
         SendClientMessage(playerid, COLOR_RADIO2, "[SKIN]{b2ffcd}: /skin");
         return 1;
     }
+
+    if(!strcmp(params, "camaras", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA CÁMARAS _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[CÁMARAS]{b2ffcd}: /instalarcamara /eliminarcam [ID]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[CÁMARAS]{b2ffcd}: /camara [ID] | /camara off | /camara lista");
+        SendClientMessage(playerid, COLOR_RADIO2, "[CÁMARAS]{b2ffcd}: /dañarcamara | /arreglarcamara | /buscarcamaras");
+        return 1;
+    }
     
     if(!strcmp(params, "talador", true))
     {
@@ -108,3 +118,4 @@ CMD:ayuda(playerid, params[])
     SendClientMessage(playerid, COLOR_FADE3, "Opciï¿½n no vï¿½lida. Usa /ayuda para ver las opciones disponibles.");
     return 1;
 }
+
