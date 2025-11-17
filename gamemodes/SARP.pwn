@@ -86,6 +86,7 @@ main()
 
 public OnGameModeInit()
 {
+	InitCameras();
 	SendRconCommand("hostname "SERVER_NAME" | "SERVER_URL" [Código abierto]");
 	SetGameModeText("Servidor de Prueba");
 
@@ -99,4 +100,72 @@ public OnGameModeInit()
 	AddPlayerClassEx(8, 285, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	AddPlayerClassEx(9, 287, 1544.3810, -1675.4711, 13.5583, 90.0000, -1, -1, -1, -1, -1, -1);
 	return 1;
+}
+
+public OnPlayerEditDynamicObject(playerid, STREAMER_TAG_OBJECT:objectid, response, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz)
+{
+    if(response == EDIT_RESPONSE_FINAL)
+    {
+        if(GetPVarType(playerid, "EditingCameraID") != PLAYER_VARTYPE_NONE)
+        {
+            new cameraid = GetPVarInt(playerid, "EditingCameraID");
+            
+            if(CameraData[cameraid][cam_Object] == objectid)
+            {
+                // Marcar como existente y guardar posición
+                CameraData[cameraid][cam_Exists] = true;
+                CameraData[cameraid][cam_PosX] = x;
+                CameraData[cameraid][cam_PosY] = y;
+                CameraData[cameraid][cam_PosZ] = z;
+                CameraData[cameraid][cam_RotX] = rx;
+                CameraData[cameraid][cam_RotY] = ry;
+                CameraData[cameraid][cam_RotZ] = rz;
+                
+                SetDynamicObjectPos(objectid, x, y, z);
+                SetDynamicObjectRot(objectid, rx, ry, rz);
+                
+                new msg[128];
+                format(msg, sizeof(msg), "INFO: Camara ID %d instalada correctamente.", cameraid);
+                SendClientMessage(playerid, COLOR_LIGHTGREEN, msg);
+            }
+            
+            DeletePVar(playerid, "EditingCameraID");
+        }
+    }
+    else if(response == EDIT_RESPONSE_CANCEL)
+    {
+        if(GetPVarType(playerid, "EditingCameraID") != PLAYER_VARTYPE_NONE)
+        {
+            new cameraid = GetPVarInt(playerid, "EditingCameraID");
+            
+            // Si se cancela, eliminar el objeto
+            if(IsValidDynamicObject(CameraData[cameraid][cam_Object]))
+            {
+                DestroyDynamicObject(CameraData[cameraid][cam_Object]);
+                CameraData[cameraid][cam_Object] = INVALID_OBJECT_ID;
+            }
+            
+            CameraData[cameraid][cam_Exists] = false;
+            
+            DeletePVar(playerid, "EditingCameraID");
+            SendClientMessage(playerid, COLOR_LIGHTRED, "ERROR: Instalacion de camara cancelada.");
+        }
+    }
+    
+    return 1;
+}
+
+public OnPlayerDisconnect(playerid, reason)
+{
+    // Destruir TextDraws si existen
+    DestroyProgressTextDraws(playerid);
+    
+    // Resetear variables
+    PlayerCameraData[playerid][pc_Watching] = false;
+    PlayerCameraData[playerid][pc_DamagingCamera] = false;
+    PlayerCameraData[playerid][pc_RepairingCamera] = false;
+    PlayerCameraData[playerid][pc_DamageProgress] = 0;
+    PlayerCameraData[playerid][pc_RepairProgress] = 0;
+    
+    return 1;
 }
