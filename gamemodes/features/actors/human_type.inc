@@ -40,6 +40,8 @@ OnPlayerTargetHumanActor(playerid, interactive_actor_id)
 
 OnPlayerShootNearbyHumanActor(playerid, weaponid, interactive_actor_id)
 {
+    #pragma unused weaponid
+
     if(IsActorWounded(interactive_actor_id))
     {
         #if defined DEBUG_INTERACTIVE_ACTORS

@@ -22,7 +22,7 @@
 #include <YSI_Coding\y_hooks>
 
 #define MAX_INTERACTIVE_ACTORS 128
-//#define DEBUG_INTERACTIVE_ACTORS
+#define DEBUG_INTERACTIVE_ACTORS
 
 // globals
 enum E_ACTOR_TYPE
