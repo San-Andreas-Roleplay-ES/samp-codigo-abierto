@@ -49,3 +49,5 @@ CMD:pararanim(playerid, params[])
     ClearAnimations(playerid);
     return 1;
 }
+
+

@@ -23,6 +23,7 @@
 #include "features/player/chat"
 #include "features/player/minigame-lumberjack/header"
 #include "features/player/color"
+#include "features/player/rapel/header"
 
 CMD:ayuda(playerid, params[])
 {
