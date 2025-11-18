@@ -22,6 +22,7 @@
 #include "features/player/spawn"
 #include "features/player/chat"
 #include "features/player/minigame-lumberjack/header"
+#include "features/player/minigame-harvester/header"
 #include "features/player/color"
 #include "features/player/rapel/header"
 
@@ -29,10 +30,10 @@ CMD:ayuda(playerid, params[])
 {
     if(isnull(params))
     {
-        SendClientMessage(playerid, COLOR_GRAD1, "Uso: /ayuda [opciï¿½n]");
-        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opciï¿½n: (teleport, animacion, objetos)");
-        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opciï¿½n: (coordenadas, admin, chat)");
-        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opciï¿½n: (vehiculos, talador)");
+        SendClientMessage(playerid, COLOR_GRAD1, "Uso: /ayuda [opción]");
+        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (teleport, animacion, objetos)");
+        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (coordenadas, admin, chat)");
+        SendClientMessage(playerid, COLOR_LIGHTORANGE, "Opción: (vehiculos, talador, cosechador)");
         return 1;
     }
 
@@ -54,8 +55,8 @@ CMD:ayuda(playerid, params[])
     
     if(!strcmp(params, "animacion", true))
     {
-        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA ANIMACIï¿½N _______________ ]");
-        SendClientMessage(playerid, COLOR_RADIO2, "[ANIMACIï¿½N]{b2ffcd}: /anims /pararanim");
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA ANIMACIÓN _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[ANIMACIÓN]{b2ffcd}: /anims /pararanim");
         return 1;
     }
     
@@ -106,6 +107,14 @@ CMD:ayuda(playerid, params[])
         return 1;
     }
     
-    SendClientMessage(playerid, COLOR_FADE3, "Opciï¿½n no vï¿½lida. Usa /ayuda para ver las opciones disponibles.");
+    if(!strcmp(params, "cosechador", true))
+    {
+        SendClientMessage(playerid, COLOR_HELP_1, "[ _______________ AYUDA COSECHADOR _______________ ]");
+        SendClientMessage(playerid, COLOR_RADIO2, "[COSECHADOR]{b2ffcd}: /iniciarcos /cancelarcos");
+        SendClientMessage(playerid, COLOR_RADIO2, "[COSECHADOR]{b2ffcd}: Usa una cosechadora (modelo 532)");
+        return 1;
+    }
+    
+    SendClientMessage(playerid, COLOR_FADE3, "Opción no válida. Usa /ayuda para ver las opciones disponibles.");
     return 1;
 }

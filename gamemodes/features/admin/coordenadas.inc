@@ -1,7 +1,7 @@
 #define MAX_COORDENADAS 100
 #define MAX_NOMBRE 32
 
-new Float: Coordenadas[MAX_COORDENADAS][4]; // 0: x, 1: y, 2: z, 3: usado (1/0)
+new Float: Coordenadas[MAX_COORDENADAS][5]; // 0: x, 1: y, 2: z, 3: angle, 4: usado (1/0)
 new CoordenadaNombre[MAX_COORDENADAS][MAX_NOMBRE];
 new coordenadaCount = 0;
 
@@ -12,14 +12,15 @@ CMD:marcarcoord(playerid, params[])
     if(sscanf(params, "s[32]", nombre))
         return SendClientMessage(playerid, COLOR_GRAD2, "USO: /marcarcoord [nombre]");
 
-    new Float:x, Float:y, Float:z;
+    new Float:x, Float:y, Float:z, Float:angle;
     GetPlayerPos(playerid, x, y, z);
+    GetPlayerFacingAngle(playerid, angle);
 
     new File:file = fopen("coordenadas.txt", io_append);
     if(file)
     {
         new str[128];
-        format(str, sizeof(str), "%s %.2f %.2f %.2f\r\n", nombre, x, y, z);
+        format(str, sizeof(str), "%s %.2f %.2f %.2f %.2f\r\n", nombre, x, y, z, angle);
         fwrite(file, str);
         fclose(file);
     }
@@ -30,11 +31,12 @@ CMD:marcarcoord(playerid, params[])
         Coordenadas[coordenadaCount][0] = x;
         Coordenadas[coordenadaCount][1] = y;
         Coordenadas[coordenadaCount][2] = z;
-        Coordenadas[coordenadaCount][3] = 1;
+        Coordenadas[coordenadaCount][3] = angle;
+        Coordenadas[coordenadaCount][4] = 1;
         coordenadaCount++;
     }
 
-    SendClientMessage(playerid, COLOR_GRAD1, "Coordenada marcada y guardada con nombre: %s", nombre);
+    SendClientMessage(playerid, COLOR_GRAD1, "Coordenada marcada y guardada con nombre: %s (Angle: %.2f)", nombre, angle);
     return 1;
 }
 
@@ -49,7 +51,7 @@ CMD:listarcoords(playerid, params[])
     }
 
     new str[128], nombre[32];
-    new Float:x, Float:y, Float:z;
+    new Float:x, Float:y, Float:z, Float:angle;
     new count = 0, id = 0;
 
     new encabezado[64];
@@ -58,9 +60,17 @@ CMD:listarcoords(playerid, params[])
 
     while(fread(file, str))
     {
-        if(sscanf(str, "s[32]f f f", nombre, x, y, z)) continue;
+        // Intentar leer con ángulo primero (nuevo formato)
+        if(sscanf(str, "s[32]ffff", nombre, x, y, z, angle))
+        {
+            // Si falla, intentar leer sin ángulo (formato antiguo)
+            if(sscanf(str, "s[32]fff", nombre, x, y, z))
+                continue;
+            angle = 0.0; // Ángulo por defecto para coordenadas antiguas
+        }
+        
         new msg[144];
-        format(msg, sizeof(msg), "ID: %d | %s | %.2f, %.2f, %.2f", id, nombre, x, y, z);
+        format(msg, sizeof(msg), "ID: %d | %s | %.2f, %.2f, %.2f, %.2f", id, nombre, x, y, z, angle);
         SendClientMessage(playerid, COLOR_FADE3, msg);
         id++;
         count++;

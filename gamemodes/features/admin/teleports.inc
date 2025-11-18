@@ -35,3 +35,10 @@ CMD:ap(playerid, params[])
     SetPlayerPos(playerid, -2039.40, -2382.60, 30.62);
     return 1;
 }
+
+alias:bl("blueberry")
+CMD:bl(playerid, params[])
+{
+    SetPlayerPos(playerid, -105.98, 74.11, 3.11);
+    return 1;
+}

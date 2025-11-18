@@ -19,6 +19,5 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "features/admin/cmd_admin"
-#include "features/admin/combat_log"
-#include "features/admin/vehicle_parts"
+#include "features/player/minigame-harvester/vehicles"
+#include "features/player/minigame-harvester/harvester"
