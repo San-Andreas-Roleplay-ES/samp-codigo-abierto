@@ -77,6 +77,9 @@ stock GetModelName(modelid)
 alias:crearobjeto("crearobj", "crearob", "crearo")
 CMD:crearobjeto(playerid, params[])
 {
+    if(GetPVarInt(playerid, "SP_ObjectEditor"))
+        return SendClientMessage(playerid, COLOR_FADE3, "Termina primero el editor de blancos de practica.");
+
     if(IsPlayerInAnyVehicle(playerid))
         return SendClientMessage(playerid, COLOR_FADE3, "No puedes usar este comando dentro de un vehículo.");
 
@@ -131,6 +134,9 @@ CMD:crearobjeto(playerid, params[])
 alias:editarobjeto("editarobj", "editarob", "editaro")
 CMD:editarobjeto(playerid, params[])
 {
+    if(GetPVarInt(playerid, "SP_ObjectEditor"))
+        return SendClientMessage(playerid, COLOR_FADE3, "Termina primero el editor de blancos de practica.");
+
     if(IsPlayerInAnyVehicle(playerid))
         return SendClientMessage(playerid, COLOR_FADE3, "No puedes usar este comando dentro de un vehículo.");
 

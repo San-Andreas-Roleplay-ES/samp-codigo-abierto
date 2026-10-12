@@ -21,3 +21,6 @@ announce
 scriptfiles/
 logs/
 docs/
+
+# Local Windows server: binaries, credentials, collision data and logs
+/.local-server/

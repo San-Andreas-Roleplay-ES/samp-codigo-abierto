@@ -76,6 +76,7 @@
 #include "features/actors/core"
 
 #include "features/breach_shotgun.inc"
+#include "features/shooting_practice/header"
 
 main() 
 {

@@ -1,0 +1,148 @@
+{
+  "packages": [
+    {
+      "name": "server",
+      "file": "samp03DL_svr_R1_win32.zip",
+      "url": "https://sampforum.blast.hk/files/03DL/samp03DL_svr_R1_win32.zip",
+      "files": [
+        [
+          "samp-server.exe",
+          ".local-server/samp-server.exe"
+        ],
+        [
+          "samp-npc.exe",
+          ".local-server/samp-npc.exe"
+        ],
+        [
+          "samp-license.txt",
+          ".local-server/licenses/samp-license.txt"
+        ]
+      ],
+      "sha256": "40686AB80E74155B8ED9A51E59EDC0C812EBA8436047AC5A467268F34A78FD03"
+    },
+    {
+      "name": "compiler",
+      "file": "compiler.zip",
+      "url": "https://github.com/pawn-lang/compiler/releases/download/v3.10.10/pawnc-3.10.10-windows.zip",
+      "files": [
+        [
+          "pawnc-3.10.10-windows/bin/pawncc.exe",
+          "pawno/pawncc.exe"
+        ],
+        [
+          "pawnc-3.10.10-windows/bin/pawnc.dll",
+          "pawno/pawnc.dll"
+        ]
+      ],
+      "sha256": "14A94E93F0E05443752B9925D69F76C07DB7970EAA4DFB175CDE01C74451C2FE"
+    },
+    {
+      "name": "crashdetect",
+      "file": "crashdetect.zip",
+      "url": "https://github.com/Y-Less/samp-plugin-crashdetect/releases/download/v4.22/crashdetect-4.22-win32.zip",
+      "files": [
+        [
+          "crashdetect-4.22-win32/crashdetect.dll",
+          ".local-server/plugins/crashdetect.dll"
+        ]
+      ],
+      "sha256": "5189041C99535F1B84D7F8E31328DA443225853C9492DF4E6BE6EBD5C8D82F87"
+    },
+    {
+      "name": "streamer",
+      "file": "streamer.zip",
+      "url": "https://github.com/samp-incognito/samp-streamer-plugin/releases/download/v2.9.6/samp-streamer-plugin-2.9.6.zip",
+      "files": [
+        [
+          "plugins/streamer.dll",
+          ".local-server/plugins/streamer.dll"
+        ]
+      ],
+      "sha256": "BF30AB50A8D44E9E0FBF0D02CACF128FC36F147D9711881928716E76288F4700"
+    },
+    {
+      "name": "sscanf",
+      "file": "sscanf.zip",
+      "url": "https://github.com/Y-Less/sscanf/releases/download/v2.13.1/sscanf-2.13.1-win32.zip",
+      "files": [
+        [
+          "plugins/sscanf.dll",
+          ".local-server/plugins/sscanf.dll"
+        ]
+      ],
+      "sha256": "2F91312CE336ECB98DD050FD2A96122A491B5C0E4B32A305859D54781430F435"
+    },
+    {
+      "name": "pawncmd",
+      "file": "pawncmd.zip",
+      "url": "https://github.com/katursis/Pawn.CMD/releases/download/3.3.6/pawncmd-3.3.6-win32.zip",
+      "files": [
+        [
+          "pawncmd.dll",
+          ".local-server/plugins/pawncmd.dll"
+        ]
+      ],
+      "sha256": "CFBD0C8DA05E7864BD8526A60994F73882B7539C0A897A6CC5BE86138FBA712F"
+    },
+    {
+      "name": "pawnraknet",
+      "file": "pawnraknet.zip",
+      "url": "https://github.com/katursis/Pawn.RakNet/releases/download/1.6.0/pawnraknet-1.6.0-win32.zip",
+      "files": [
+        [
+          "pawnraknet.dll",
+          ".local-server/plugins/pawnraknet.dll"
+        ]
+      ],
+      "sha256": "4F805C62D687D96743A571863197CEE984D37C1B9C64DBF2EC089CA068153D76"
+    },
+    {
+      "name": "mysql",
+      "file": "mysql.zip",
+      "url": "https://github.com/pBlueG/SA-MP-MySQL/releases/download/R41-4/mysql-R41-4-win32.zip",
+      "files": [
+        [
+          "mysql-R41-4-win32/plugins/mysql.dll",
+          ".local-server/plugins/mysql.dll"
+        ],
+        [
+          "mysql-R41-4-win32/libmariadb.dll",
+          ".local-server/libmariadb.dll"
+        ],
+        [
+          "mysql-R41-4-win32/log-core.dll",
+          ".local-server/log-core.dll"
+        ]
+      ],
+      "sha256": "C6F17EF7E9A7ACCFA6B984810B3334F488169AFAA4646BBC62FC18C5FAA49CE7"
+    },
+    {
+      "name": "fcnpc",
+      "file": "fcnpc.zip",
+      "url": "https://github.com/ziggi/FCNPC/releases/download/v2.0.11/FCNPC-2.0.11.zip",
+      "files": [
+        [
+          "FCNPC-2.0.11/plugins/FCNPC-DL.dll",
+          ".local-server/plugins/FCNPC-DL.dll"
+        ],
+        [
+          "FCNPC-2.0.11/scriptfiles/FCNPC/nodes",
+          ".local-server/scriptfiles/FCNPC/nodes"
+        ]
+      ],
+      "sha256": "3F698579D4CDE0D9C4622CF7F60173BE4EBBEF64729438EF09F487979EBF3B51"
+    },
+    {
+      "name": "collision-data",
+      "file": "ColAndreas.cadb",
+      "url": "https://media.githubusercontent.com/media/xorweak/rzmp-gamemode/3a362e5ff50c8d051abcf14aa434f7d597b92033/scriptfiles/colandreas/ColAndreas.cadb",
+      "files": [
+        [
+          "",
+          ".local-server/scriptfiles/colandreas/ColAndreas.cadb"
+        ]
+      ],
+      "sha256": "5E6842840C7F9D9FC3CA6D52C915DC359272302411558AB2847778204B7B9E3E"
+    }
+  ]
+}

@@ -352,7 +352,7 @@ stock ShowModelSelectionMenu(playerid, ListID, const header_text[], dialogBGcolo
 
 //------------------------------------------------------------
 
-stock ShowModelSelectionMenuEx(playerid, items_array[], item_amount, header_text[], extraid, Float:Xrot = 0.0, Float:Yrot = 0.0, Float:Zrot = 0.0, Float:mZoom = 1.0, dialogBGcolor = 0x000000BB, previewBGcolor = 0x88888899 , tdSelectionColor = 0xFFFF00AA)
+stock ShowModelSelectionMenuEx(playerid, const items_array[], item_amount, const header_text[], extraid, Float:Xrot = 0.0, Float:Yrot = 0.0, Float:Zrot = 0.0, Float:mZoom = 1.0, dialogBGcolor = 0x000000BB, previewBGcolor = 0x88888899 , tdSelectionColor = 0xFFFF00AA, const back_text[] = mS_CANCEL_TEXT)
 {
 	mS_DestroySelectionMenu(playerid);
 	if(item_amount > mS_CUSTOM_MAX_ITEMS)
@@ -384,7 +384,7 @@ stock ShowModelSelectionMenuEx(playerid, items_array[], item_amount, header_text
 		gCurrentPageTextDrawId[playerid] = mS_CreateCurrentPageTextDraw(playerid, mS_DIALOG_WIDTH - 30.0, mS_DIALOG_BASE_Y + 15.0);
 		gNextButtonTextDrawId[playerid] = mS_CreatePlayerDialogButton(playerid, mS_DIALOG_WIDTH - 30.0, mS_DIALOG_BASE_Y+mS_DIALOG_HEIGHT+100.0, 50.0, 16.0, mS_NEXT_TEXT);
 		gPrevButtonTextDrawId[playerid] = mS_CreatePlayerDialogButton(playerid, mS_DIALOG_WIDTH - 90.0, mS_DIALOG_BASE_Y+mS_DIALOG_HEIGHT+100.0, 50.0, 16.0, mS_PREV_TEXT);
-		gCancelButtonTextDrawId[playerid] = mS_CreatePlayerDialogButton(playerid, mS_DIALOG_WIDTH - 150.0, mS_DIALOG_BASE_Y+mS_DIALOG_HEIGHT+100.0, 50.0, 16.0, mS_CANCEL_TEXT);
+		gCancelButtonTextDrawId[playerid] = mS_CreatePlayerDialogButton(playerid, mS_DIALOG_WIDTH - 150.0, mS_DIALOG_BASE_Y+mS_DIALOG_HEIGHT+100.0, 50.0, 16.0, back_text);
 
 		SetPVarInt(playerid, "mS_previewBGcolor", previewBGcolor);
 		mS_ShowPlayerMPs(playerid);
