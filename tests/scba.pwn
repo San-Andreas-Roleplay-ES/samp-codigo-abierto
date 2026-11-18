@@ -7,6 +7,8 @@
 #pragma warning disable 239
 #pragma dynamic 8192
 
+#include "features/scba/config"
+
 #define TEST_DRAW_COUNT (256)
 #define TEST_VEHICLE_COUNT (32)
 #define TEST_ROOM_INTERIOR (11)
@@ -19,6 +21,15 @@ new TestPlayerState[MAX_PLAYERS], TestSkin[MAX_PLAYERS], TestWorld[MAX_PLAYERS],
 new Float:TestPosition[MAX_PLAYERS][3], Float:TestHealth[MAX_PLAYERS];
 new TestAttachments[MAX_PLAYERS][MAX_PLAYER_ATTACHED_OBJECTS], TestAttachmentBone[MAX_PLAYERS][MAX_PLAYER_ATTACHED_OBJECTS];
 new TestAttachCalls, TestAttachFailAt;
+new Float:TestPartOffset[MAX_PLAYERS][MAX_PLAYER_ATTACHED_OBJECTS][3];
+new Float:TestPartScale[MAX_PLAYERS][MAX_PLAYER_ATTACHED_OBJECTS][3];
+new TestEditedSlot[MAX_PLAYERS], TestClosedEditors, TestFitWrites;
+new bool:TestFailEditor, bool:TestFailFitWrite;
+new TestCharacterId[MAX_PLAYERS], TestSavedPose[MAX_PLAYERS][SCBA_PART_COUNT][E_SCBA_POSE];
+new bool:TestSavedPart[MAX_PLAYERS][SCBA_PART_COUNT];
+#define MAX_ADMIN_OBJECTS (1)
+new playerEditingObjectID[MAX_PLAYERS] = {-1, ...};
+
 new TestMessages[MAX_PLAYERS], TestSounds[MAX_PLAYERS], TestLastSound[MAX_PLAYERS];
 new Float:TestSoundPosition[MAX_PLAYERS][3], TestLastMessage[MAX_PLAYERS][144];
 new TestAnimation[MAX_PLAYERS], TestClearedAnimations[MAX_PLAYERS], TestControl[MAX_PLAYERS];
@@ -66,10 +77,33 @@ stock TestAttach(playerid, slot, model, bone, Float:x, Float:y, Float:z, Float:r
     if (TestAttachFailAt && TestAttachCalls == TestAttachFailAt) return 0;
     TestAttachments[playerid][slot] = model;
     TestAttachmentBone[playerid][slot] = bone;
+    TestPartOffset[playerid][slot][0] = x; TestPartOffset[playerid][slot][1] = y; TestPartOffset[playerid][slot][2] = z;
+    TestPartScale[playerid][slot][0] = sx; TestPartScale[playerid][slot][1] = sy; TestPartScale[playerid][slot][2] = sz;
     TestPartRotation[playerid][slot][0] = rx;
     TestPartRotation[playerid][slot][1] = ry;
     TestPartRotation[playerid][slot][2] = rz;
     return 1;
+}
+stock TestEditAttached(playerid, slot)
+{
+    if (TestFailEditor) return 0;
+    TestEditedSlot[playerid] = slot;
+    return 1;
+}
+stock TestCancelEdit(playerid)
+{
+    TestEditedSlot[playerid] = -1;
+    TestClosedEditors++;
+    return 1;
+}
+stock bool:TestSaveFitStat(playerid, E_SCBA_PART:part, const pose[E_SCBA_POSE])
+{
+    if (TestFailFitWrite) return false;
+    new characterid = TestCharacterId[playerid];
+    TestSavedPose[characterid][part] = pose;
+    TestSavedPart[characterid][part] = true;
+    TestFitWrites++;
+    return true;
 }
 stock TestRemoveAttachment(playerid, slot) { TestAttachments[playerid][slot] = 0; return 1; }
 stock TestChatText(playerid, colour, const message[])
@@ -213,6 +247,9 @@ stock TestFindModelName(crc, path[], size)
 #define IsPlayerAttachedObjectSlotUsed TestSlotUsed
 #define SetPlayerAttachedObject TestAttach
 #define RemovePlayerAttachedObject TestRemoveAttachment
+#define EditAttachedObject TestEditAttached
+#define CancelEdit TestCancelEdit
+#define ScbaHostSaveFit TestSaveFitStat
 #define SendClientMessage TestMessage
 #define ScbaSendChatText TestChatText
 #define PlayerPlaySound TestSound
@@ -273,6 +310,8 @@ stock ResetTest(interior = 0)
         ScbaCleanup(playerid);
         ScbaResetPlayer(playerid);
         TestConnected[playerid] = true; TestAdmin[playerid] = false; TestNpc[playerid] = false;
+        TestEditedSlot[playerid] = -1; playerEditingObjectID[playerid] = -1; TestCharacterId[playerid] = playerid;
+        for (new E_SCBA_PART:part; part < SCBA_PART_COUNT; part++) TestSavedPart[playerid][part] = false;
         TestPlayerState[playerid] = PLAYER_STATE_ONFOOT; TestHealth[playerid] = 100.0; TestSkin[playerid] = 277;
         TestWorld[playerid] = 0; TestInterior[playerid] = interior;
         TestPosition[playerid][0] = 100.0; TestPosition[playerid][1] = 200.0; TestPosition[playerid][2] = 10.0;
@@ -304,6 +343,8 @@ stock ResetTest(interior = 0)
     ScbaSupplyVehicles[0][ScbaVehicleRadius] = SCBA_INTERACTION_RADIUS;
     ScbaAudioBaseUrl[0] = EOS;
     TestDrawCalls = TestDrawFailAt = TestAttachCalls = TestAttachFailAt = TestInvalidDrawCalls = TestHealthWrites = 0;
+    TestFailEditor = TestFailFitWrite = false;
+    TestFitWrites = TestClosedEditors = 0;
     TestNow = 1000;
     return 1;
 }
@@ -430,6 +471,122 @@ stock TestSourcePolicies()
     Check(!ScbaPlayer[0][ScbaEquipped], "moving vehicles cannot act as supply sources");
     TestVelocity[10][0] = 0.0; TestVehicleWorld[10] = 1; ScbaHandleCommand(0, "equipar");
     Check(!ScbaPlayer[0][ScbaEquipped], "supply vehicles respect their current world");
+}
+
+stock bool:TestWearsPose(playerid, E_SCBA_PART:part, const pose[E_SCBA_POSE])
+{
+    new slot = ScbaAttachmentSlots[playerid][part];
+    return slot != SCBA_EMPTY_SLOT && TestPartOffset[playerid][slot][0] == pose[ScbaOffsetX]
+        && TestPartOffset[playerid][slot][1] == pose[ScbaOffsetY] && TestPartOffset[playerid][slot][2] == pose[ScbaOffsetZ]
+        && TestPartRotation[playerid][slot][0] == pose[ScbaRotationX] && TestPartRotation[playerid][slot][1] == pose[ScbaRotationY]
+        && TestPartRotation[playerid][slot][2] == pose[ScbaRotationZ];
+}
+
+stock TestFitResponse(playerid, E_SCBA_PART:part, response, const pose[E_SCBA_POSE])
+{
+    return ScbaFinishFitEdit(playerid, response, ScbaAttachmentSlots[playerid][part],
+        ScbaModels[part][ScbaCustomModel], ScbaModels[part][ScbaModelBone], pose);
+}
+
+stock TestFitEditor()
+{
+    ResetTest();
+    new const packPose[E_SCBA_POSE] = {0.12, -0.21, 0.31, 15.0, -55.0, 179.0};
+    new const maskPose[E_SCBA_POSE] = {0.04, 0.09, 0.01, -8.0, 2.0, -161.0};
+    new const defaultPack[E_SCBA_POSE] = {-0.079, 0.050, -0.020, 0.0, 90.0, 180.0};
+    new const defaultMask[E_SCBA_POSE] = {0.0394, 0.0793, 0.0045, -9.46, -1.27, -164.10};
+    new const badCommands[][] = {"ajustar", "ajustar otro", "ajustar mascara extra", "ajustar equipoxxxxxxxxxxxxxxxxx"};
+    for (new i = 0; i < sizeof(badCommands); i++)
+    {
+        TestCommand_scba(0, badCommands[i]);
+        Check(TestEditedSlot[0] == -1 && strfind(TestLastMessage[0], "/scba ajustar equipo") >= 0,
+            "missing or invalid adjustment arguments show piece-specific help");
+    }
+    TestCommand_scba(0, "ajustar equipo");
+    Check(TestEditedSlot[0] == -1 && !ScbaHasEquipment(0), "editing cannot grant the player equipment");
+    ScbaEquip(0); TestCommand_scba(0, "ajustar mascara");
+    Check(TestEditedSlot[0] == -1 && !ScbaPlayer[0][ScbaMaskOn], "a removed mask cannot enter the editor");
+    ScbaToggleMask(0, TestNow);
+    new backpack = ScbaAttachmentSlots[0][SCBA_BACKPACK], mask = ScbaAttachmentSlots[0][SCBA_MASK];
+    Check(TestWearsPose(0, SCBA_BACKPACK, defaultPack) && TestWearsPose(0, SCBA_MASK, defaultMask),
+        "a character without stats uses the approved offsets and rotations on both parts");
+    TestFailEditor = true; TestCommand_scba(0, "ajustar equipo"); TestFailEditor = false;
+    Check(ScbaPlayer[0][ScbaEditingPart] == SCBA_PART_COUNT, "a failed native editor does not leave a pending edit");
+    TestCommand_scba(0, " AJUSTAR\t EQUIPO ");
+    TestCommand_scba(0, "ajustar mascara");
+    Check(TestEditedSlot[0] == backpack && ScbaPlayer[0][ScbaEditingPart] == SCBA_BACKPACK,
+        "only one worn piece is edited at a time, using its actual slot");
+    Check(!TestFitResponse(0, SCBA_MASK, EDIT_RESPONSE_FINAL, maskPose)
+        && !ScbaFinishFitEdit(0, EDIT_RESPONSE_FINAL, backpack, 1271, 1, packPose)
+        && !ScbaFinishFitEdit(0, EDIT_RESPONSE_FINAL, backpack, ScbaModels[SCBA_BACKPACK][ScbaCustomModel], 2, packPose)
+        && !TestFitResponse(0, SCBA_BACKPACK, EDIT_RESPONSE_UPDATE, packPose) && !TestFitWrites,
+        "foreign slots, models, bones and updates never write character stats");
+    TestFitResponse(0, SCBA_BACKPACK, EDIT_RESPONSE_FINAL, packPose);
+    Check(TestFitWrites == 1 && TestSavedPart[0][SCBA_BACKPACK] && !TestSavedPart[0][SCBA_MASK]
+        && TestWearsPose(0, SCBA_BACKPACK, packPose) && TestWearsPose(0, SCBA_MASK, defaultMask),
+        "accepting the backpack commits only that piece and leaves the mask calibrated");
+    Check(TestPartScale[0][backpack][1] == 1.12 && !TestFitResponse(0, SCBA_BACKPACK, EDIT_RESPONSE_FINAL, maskPose),
+        "a confirmed edit retains skin scale and cannot be replayed");
+    TestCommand_scba(0, "ajustar mascara");
+    Check(TestEditedSlot[0] == mask, "the mask command opens its own native editor");
+    new airBeforeEdit = ScbaPlayer[0][ScbaAirRemainingMs];
+    TestNow += SCBA_SECOND_MS; ScbaTickPlayer(0, TestNow);
+    Check(ScbaPlayer[0][ScbaAirRemainingMs] == airBeforeEdit - SCBA_SECOND_MS && ScbaGaugeVisible[0],
+        "adjusting a connected mask keeps breathing and the gauge running");
+    TestFitResponse(0, SCBA_MASK, EDIT_RESPONSE_CANCEL, maskPose);
+    Check(TestWearsPose(0, SCBA_MASK, defaultMask) && TestFitWrites == 1, "cancelling a first mask edit restores its default");
+    TestCommand_scba(0, "ajustar mascara"); TestFitResponse(0, SCBA_MASK, EDIT_RESPONSE_FINAL, maskPose);
+    TestCommand_scba(0, "ajustar equipo"); TestFitResponse(0, SCBA_BACKPACK, EDIT_RESPONSE_CANCEL, defaultPack);
+    Check(TestWearsPose(0, SCBA_BACKPACK, packPose) && TestWearsPose(0, SCBA_MASK, maskPose)
+        && TestPartScale[0][mask][2] == 1.07 && TestFitWrites == 2, "cancel restores the previous personal fit and both scales stay calibrated");
+    TestCommand_scba(0, "ajustar equipo");
+    TestFailFitWrite = true; TestFitResponse(0, SCBA_BACKPACK, EDIT_RESPONSE_FINAL, defaultPack); TestFailFitWrite = false;
+    Check(TestFitWrites == 2 && TestWearsPose(0, SCBA_BACKPACK, packPose), "a rejected stats write rolls the displayed pose back");
+    TestCommand_scba(0, "ajustar mascara");
+    TestAttachFailAt = TestAttachCalls + 1; TestFitResponse(0, SCBA_MASK, EDIT_RESPONSE_FINAL, defaultMask); TestAttachFailAt = 0;
+    Check(TestFitWrites == 2 && TestWearsPose(0, SCBA_MASK, maskPose), "failure to place the piece never commits stats");
+    new invalid[E_SCBA_POSE];
+    invalid[ScbaOffsetX] = SCBA_FIT_OFFSET_LIMIT + 1.0;
+    TestCommand_scba(0, "ajustar equipo"); TestFitResponse(0, SCBA_BACKPACK, EDIT_RESPONSE_FINAL, invalid);
+    invalid[ScbaOffsetX] = 0.0; invalid[ScbaRotationZ] = Float:0x7FC00000;
+    Check(!ScbaSetCharacterFit(0, SCBA_MASK, invalid) && TestFitWrites == 2 && TestWearsPose(0, SCBA_BACKPACK, packPose),
+        "invalid editor or imported values leave the prior fit intact");
+    TestCommand_scba(0, "ajustar mascara"); ScbaToggleMask(0, TestNow);
+    Check(TestClosedEditors == 1 && !TestFitResponse(0, SCBA_MASK, EDIT_RESPONSE_FINAL, defaultMask),
+        "removing the selected piece closes its editor and ignores a late result");
+    TestCommand_scba(0, "ajustar equipo"); TestSkin[0] = 279; ScbaTickPlayer(0, TestNow);
+    Check(TestClosedEditors == 2 && TestWearsPose(0, SCBA_BACKPACK, packPose)
+        && !TestFitResponse(0, SCBA_BACKPACK, EDIT_RESPONSE_FINAL, defaultPack), "skin changes cancel an outstanding edit and reapply the saved pose");
+
+    ScbaPlayer[0][ScbaAirRemainingMs] = SCBA_FULL_AIR_MS / 2;
+    TestCommand_scba(0, "recargar"); TestCommand_scba(0, "ajustar equipo");
+    Check(ScbaPlayer[0][ScbaSupplySource] == SCBA_SOURCE_POINT && ScbaPlayer[0][ScbaEditingPart] == SCBA_PART_COUNT,
+        "refill and attachment editing cannot run over one another");
+    TestCommand_scba(0, "cancelar"); TestCommand_scba(0, "ajustar equipo"); TestCommand_scba(0, "recargar");
+    Check(ScbaPlayer[0][ScbaSupplySource] == SCBA_SOURCE_NONE && ScbaPlayer[0][ScbaEditingPart] == SCBA_BACKPACK,
+        "a refill command does not interrupt the active editor");
+    playerEditingObjectID[0] = 7; ScbaTickPlayer(0, TestNow); TestCommand_scba(0, "ajustar equipo");
+    Check(ScbaPlayer[0][ScbaEditingPart] == SCBA_PART_COUNT && TestClosedEditors == 2,
+        "a mapping session keeps ownership of the native editor");
+    playerEditingObjectID[0] = -1;
+    TestCommand_scba(0, "guardar"); EquipAndActivate();
+    Check(TestWearsPose(0, SCBA_BACKPACK, packPose) && TestWearsPose(0, SCBA_MASK, maskPose), "stored gear reapplies each personal fit when equipped again");
+    TestCommand_scba(0, "ajustar mascara"); ScbaCleanup(0);
+    Check(ScbaPlayer[0][ScbaEditingPart] == SCBA_PART_COUNT && !TestFitResponse(0, SCBA_MASK, EDIT_RESPONSE_FINAL, defaultMask),
+        "spawn and death cleanup invalidate the editor without saving");
+    EquipAndActivate(); Check(TestWearsPose(0, SCBA_MASK, maskPose), "personal calibration survives a respawn in the same connection");
+    ScbaCleanup(0); ScbaResetPlayer(0); ScbaPlayer[0][ScbaAssetsReady] = true; TestCharacterId[0] = 2;
+    EquipAndActivate(); Check(TestWearsPose(0, SCBA_BACKPACK, defaultPack) && TestWearsPose(0, SCBA_MASK, defaultMask),
+        "a reused player slot has no previous character's overrides");
+    TestCharacterId[1] = 0;
+    for (new E_SCBA_PART:part; part < SCBA_PART_COUNT; part++)
+        if (TestSavedPart[0][part]) ScbaSetCharacterFit(1, part, TestSavedPose[0][part]);
+    EquipAndActivate(1);
+    Check(TestWearsPose(1, SCBA_BACKPACK, packPose) && TestWearsPose(1, SCBA_MASK, maskPose) && TestFitWrites == 2,
+        "a returning character reloads both saved pieces in another slot without triggering a stats write");
+    new const zeroPose[E_SCBA_POSE] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    Check(ScbaSetCharacterFit(1, SCBA_MASK, zeroPose) && TestWearsPose(1, SCBA_MASK, zeroPose) && TestWearsPose(1, SCBA_BACKPACK, packPose),
+        "a valid all-zero pose imported on a worn part is distinct from the default");
 }
 
 stock TestEquipmentAndHud()
@@ -1171,6 +1328,7 @@ public OnGameModeInit()
     TestStatusAndStorage();
     TestSourcePolicies();
     TestEquipmentAndHud();
+    TestFitEditor();
     TestAirAndDamage();
     TestIndoorAirDamage();
     TestEmptyCylinderCadence();

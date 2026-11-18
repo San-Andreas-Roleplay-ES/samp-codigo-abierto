@@ -78,6 +78,20 @@ public RunScbaNativeTests()
         if (back != SCBA_EMPTY_SLOT && mask != SCBA_EMPTY_SLOT)
             CheckNative(IsPlayerAttachedObjectSlotUsed(npc, back) != 0 && IsPlayerAttachedObjectSlotUsed(npc, mask) != 0,
                 "real SA-MP attachment slots contain both custom models");
+        new const pose[E_SCBA_POSE] = {0.03, 0.08, 0.01, 2.0, -3.0, 4.0};
+        CheckNative(ScbaSetCharacterFit(npc, SCBA_MASK, pose) && ScbaHasCharacterPose[npc][SCBA_MASK],
+            "a loaded mask fit is applied to a real occupied attachment slot");
+        ScbaPlayer[npc][ScbaEditingPart] = SCBA_MASK;
+        CheckNative(funcidx("OnPlayerEditAttachedObject") >= 0, "the SA-MP attachment editor callback is exported under its full name");
+        CallLocalFunction("OnPlayerEditAttachedObject", "iiiiifffffffff", npc, EDIT_RESPONSE_CANCEL, back,
+            ScbaModels[SCBA_BACKPACK][ScbaCustomModel], ScbaModels[SCBA_BACKPACK][ScbaModelBone],
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+        CheckNative(ScbaPlayer[npc][ScbaEditingPart] == SCBA_MASK, "the native callback ignores a different attachment slot");
+        CallLocalFunction("OnPlayerEditAttachedObject", "iiiiifffffffff", npc, EDIT_RESPONSE_CANCEL, mask,
+            ScbaModels[SCBA_MASK][ScbaCustomModel], ScbaModels[SCBA_MASK][ScbaModelBone],
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 2.0);
+        CheckNative(ScbaPlayer[npc][ScbaEditingPart] == SCBA_PART_COUNT && !ScbaHasCharacterPose[npc][SCBA_BACKPACK],
+            "the native callback reaches the matching SCBA editor and closes it");
         ScbaRemovePart(npc, SCBA_MASK); ScbaRemovePart(npc, SCBA_BACKPACK);
         if (back != SCBA_EMPTY_SLOT && mask != SCBA_EMPTY_SLOT)
             CheckNative(!IsPlayerAttachedObjectSlotUsed(npc, back) && !IsPlayerAttachedObjectSlotUsed(npc, mask),

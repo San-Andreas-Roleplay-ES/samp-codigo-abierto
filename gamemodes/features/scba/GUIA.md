@@ -8,6 +8,16 @@ El SCBA es el equipo de respiración autónoma. Llevas el cilindro en la espalda
 2. Usa `/scba mascara` para colocarte la máscara y conectar el regulador. El cilindro empieza a consumirse, tanto dentro de los edificios como al aire libre.
 3. Para hacer una pausa, vuelve a usar `/scba mascara`. La lectura se mantiene en el aire que te queda. Puedes volver a conectar la máscara mientras quede aire en el cilindro.
 
+## Ajustar el cilindro y la máscara
+
+El equipo viene colocado de fábrica. Si alguna pieza atraviesa el uniforme o la máscara queda separada de la cara, puedes ajustarla sobre tu personaje.
+
+1. Usa `/scba ajustar equipo` con el cilindro puesto o `/scba ajustar mascara` con la máscara conectada. Si escribes solo `/scba ajustar`, el chat te recuerda ambas opciones.
+2. En el editor, elige **mover** o **girar** y arrastra el eje que quieras ajustar. El equipo conserva el tamaño de su modelo. Mientras ajustas la máscara conectada, sigues consumiendo aire.
+3. Pulsa el **icono de guardar** para confirmar o **Esc** para recuperar la posición anterior. Cada pieza tiene su propio ajuste.
+
+Al guardar y volver a equiparte durante la misma conexión, recuperas tu ajuste. Si el servidor lo guarda en la ficha del personaje, también lo recuperas al volver a entrar.
+
 ## Leer el manómetro
 
 La aguja y el porcentaje indican cuánto aire queda. **TIEMPO** muestra los minutos y segundos de uso restantes. La franja inferior indica el estado del equipo.
@@ -50,6 +60,8 @@ Usa `/scba guardar` a pie donde esté permitido equiparse. Puedes hacerlo con la
 | `/scba` | Ver los comandos disponibles. |
 | `/scba equipar` | Recoger el equipo en un lugar habilitado. |
 | `/scba mascara` | Ponerte o retirarte la máscara. |
+| `/scba ajustar equipo` | Mover o girar el cilindro y el arnés que llevas en la espalda. |
+| `/scba ajustar mascara` | Mover o girar la máscara que llevas puesta. |
 | `/scba recargar` | Recargar en un puesto o cambiar el cilindro junto a un vehículo habilitado. |
 | `/scba cancelar` | Interrumpir la recarga o el cambio de cilindro. |
 | `/scba guardar` | Devolver el equipo. |

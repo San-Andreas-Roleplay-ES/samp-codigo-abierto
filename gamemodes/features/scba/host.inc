@@ -4,6 +4,25 @@ stock bool:ScbaHostCanUse(playerid)
     return playerid >= 0 && playerid < MAX_PLAYERS && IsPlayerConnected(playerid) && !IsPlayerNPC(playerid);
 }
 
+#if !defined ScbaHostSaveFit
+stock bool:ScbaHostSaveFit(playerid, E_SCBA_PART:part, const pose[E_SCBA_POSE])
+{
+    // TODO(SCBA-STATS): write this piece to the selected character's stats.
+    #pragma unused playerid, part, pose
+    return true;
+}
+#endif
+
+stock bool:ScbaHostIsMapping(playerid)
+{
+    #if defined MAX_ADMIN_OBJECTS
+        return playerEditingObjectID[playerid] != -1;
+    #else
+        #pragma unused playerid
+        return false;
+    #endif
+}
+
 stock bool:ScbaHostIsIndoors(playerid, interiorid)
 {
     // Servers with mapped buildings in interior 0 can consult their property state here.

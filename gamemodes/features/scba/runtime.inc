@@ -121,6 +121,8 @@ stock bool:ScbaBeginSupply(playerid, now)
 {
     if (GetPlayerState(playerid) != PLAYER_STATE_ONFOOT)
         return ScbaReject(playerid, "Debes estar a pie para abastecer el equipo.");
+    if (ScbaPlayer[playerid][ScbaEditingPart] != SCBA_PART_COUNT)
+        return ScbaReject(playerid, "Termina de ajustar la pieza antes de recargar.");
     if (!ScbaHasEquipment(playerid))
         return ScbaReject(playerid, "Primero debes equiparte con /scba equipar.");
     if (ScbaPlayer[playerid][ScbaMaskOn])

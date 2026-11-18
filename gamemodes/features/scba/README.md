@@ -9,6 +9,7 @@ El gamemode incorpora el SCBA con un solo include en `SARP.pwn`. La guía para j
 | Entrada y eventos de SA-MP | `header.inc` reúne los archivos y `hooks.inc` enlaza el ciclo del jugador con el módulo. |
 | Configuración e integración | `config.inc` define las reglas. `host.inc` adapta el acceso de LSFD, los interiores, la flota y las operaciones nativas de modelos y animaciones. |
 | Equipo y puntos de servicio | `equipment.inc` coloca y retira los accesorios. `sources.inc` comprueba el punto o vehículo tanto al iniciar como durante el abastecimiento. |
+| Ajuste personal de accesorios | `fit_editor.inc` abre el editor nativo, aplica la posición y la rotación de la pieza y conserva el ajuste confirmado. [Integración con los stats del personaje](CONFIGURACION.md#ajuste-personal-en-los-stats-del-personaje) |
 | Estado y reglas de juego | `state.inc` conserva la reserva por jugador. `runtime.inc` gestiona el equipo, la recarga y el consumo. `symptoms.inc` aplica los avisos y el mareo. |
 | Interacción con el jugador | `commands.inc` recibe `/scba`. `presentation.inc` dibuja el manómetro y distribuye los eventos de rol y el sonido. |
 
@@ -133,6 +134,7 @@ Compara la secuencia de daño dentro de un interior con la autonomía normal y c
 El arnés ejecuta las funciones de producción. Simula jugadores, reloj, vehículos, audio
 y TextDraws. El registro de modelos, búsquedas CRC y ejecución Pawn son reales.
 La comprobación opcional usa los callbacks reales de descarga, el control de movimiento y los accesorios sobre la skin 277.
+Las pruebas del editor cubren guardado y cancelación por pieza, el rechazo de una escritura, el cambio de skin y la carga de ajustes en otra conexión mediante stats simulados. La prueba nativa también comprueba que el callback oficial de edición llegue al módulo.
 Las pruebas de juego usan sus propias ubicaciones en memoria y se pueden ejecutar con puntos del servidor ya configurados.
 Los ejecutables de pruebas y el AMX candidato no sustituyen el servidor jugable.
 

@@ -107,6 +107,16 @@ Las duraciones terminadas en `_MS` se expresan en milisegundos. Las distancias s
 
 Si cambias el dibujo de la esfera, los fotogramas de la aguja o los rótulos de estado, regenera las texturas y actualiza el CRC de la máscara. [Modelos y servidor](README.md#modelos-y-servidor)
 
+## Ajuste personal en los stats del personaje
+
+Cada personaje puede tener un ajuste por pieza. La clave de guardado es el **ID persistente del personaje** junto con `SCBA_BACKPACK` (0) o `SCBA_MASK` (1). Para cada pieza se guardan seis valores decimales, en orden de desplazamiento X, Y y Z con respecto al hueso y rotación X, Y y Z en grados. La ausencia de registro usa la calibración de `ScbaAttachmentFits`. Una fila con los seis valores a cero representa un ajuste explícito. El modelo, hueso y escala los determina el servidor.
+
+- **Al cargar el personaje**, pasa cada fila a `ScbaSetCharacterFit(playerid, part, pose)`, con un arreglo `pose[E_SCBA_POSE]`. Sus campos son `ScbaOffsetX`, `ScbaOffsetY`, `ScbaOffsetZ`, `ScbaRotationX`, `ScbaRotationY` y `ScbaRotationZ`. Esta llamada también actualiza una pieza ya puesta y evita una segunda escritura en los stats.
+- **Al confirmar una edición**, el módulo llama a `ScbaHostSaveFit(playerid, part, pose)` en `host.inc`. Conecta esta función a los stats del PJ activo y actualiza solo esa pieza. Devuelve `true` cuando los stats acepten el cambio. Si devuelves `false`, el editor restaura el ajuste anterior. Al cancelar con Esc se omite la escritura.
+- **Al cambiar de PJ dentro de una conexión**, llama a `ScbaCleanup(playerid)` y `ScbaClearCharacterFits(playerid)` antes de cargar las filas del nuevo PJ. Si la consulta es asíncrona, comprueba que el personaje que solicitó las filas sigue activo antes de aplicarlas. Al desconectar, el módulo limpia la sesión automáticamente.
+
+La base pública conserva los ajustes en memoria durante la conexión. El servidor oficial aporta el ID del personaje y su almacenamiento permanente. `SCBA_FIT_OFFSET_LIMIT` permite configurar el desplazamiento máximo por eje desde el hueso (2.0 unidades por defecto). [Adaptador de stats](host.inc) · [Editor de accesorios de SA-MP](https://open.mp/docs/scripting/callbacks/OnPlayerEditAttachedObject)
+
 ## Integración y prueba en el mapeo
 
 - **Acceso LSFD.** `ScbaHostCanUse` acepta a los jugadores conectados que sean personas. Integra aquí el permiso de facción si el servidor debe limitar el uso a sus miembros. [Adaptación al servidor](host.inc)

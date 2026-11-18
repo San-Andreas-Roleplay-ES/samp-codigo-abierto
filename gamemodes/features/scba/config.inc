@@ -47,6 +47,7 @@ new ScbaAudioBaseUrl[192] = SCBA_ALARM_BASE_URL;
 #define SCBA_SERVICE_ANIM_SPEED (4.1)
 #define SCBA_EMPTY_SLOT (-1)
 #define SCBA_ACTION_LENGTH (16)
+#define SCBA_FIT_OFFSET_LIMIT (2.0)
 
 #define SCBA_COLOUR_TEXT (0xE4E9EDFF)
 #define SCBA_COLOUR_MUTED (0xAAB8C2FF)
@@ -163,8 +164,8 @@ new ScbaSupplyVehicles[SCBA_SUPPLY_VEHICLE_LIMIT][E_SCBA_VEHICLE] =
 
 enum E_SCBA_PART
 {
-    SCBA_BACKPACK,
-    SCBA_MASK,
+    SCBA_BACKPACK = 0,
+    SCBA_MASK = 1,
     SCBA_PART_COUNT
 }
 enum E_SCBA_MODEL
@@ -183,6 +184,11 @@ new const ScbaModels[SCBA_PART_COUNT][E_SCBA_MODEL] =
     {-21002, 19300, "scba/mask.dff", "scba/mask.txd", 2, 0x5D138AF1, 0xC31AE780}
 };
 
+enum E_SCBA_POSE
+{
+    Float:ScbaOffsetX, Float:ScbaOffsetY, Float:ScbaOffsetZ,
+    Float:ScbaRotationX, Float:ScbaRotationY, Float:ScbaRotationZ
+}
 enum E_SCBA_FIT
 {
     ScbaFitSkin,

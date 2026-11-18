@@ -47,6 +47,21 @@ hook OnPlayerFinishedDLoad(playerid, virtualworld)
     return 1;
 }
 
+DEFINE_HOOK_REPLACEMENT(Attached, Atch);
+hook OnPlayerEditAtchObject(playerid, response, index, modelid, boneid, Float:fOffsetX, Float:fOffsetY, Float:fOffsetZ, Float:fRotX, Float:fRotY, Float:fRotZ, Float:fScaleX, Float:fScaleY, Float:fScaleZ)
+{
+    #pragma unused fScaleX, fScaleY, fScaleZ
+    new pose[E_SCBA_POSE];
+    pose[ScbaOffsetX] = fOffsetX;
+    pose[ScbaOffsetY] = fOffsetY;
+    pose[ScbaOffsetZ] = fOffsetZ;
+    pose[ScbaRotationX] = fRotX;
+    pose[ScbaRotationY] = fRotY;
+    pose[ScbaRotationZ] = fRotZ;
+    ScbaFinishFitEdit(playerid, response, index, modelid, boneid, pose);
+    return 1;
+}
+
 hook OnPlayerInteriorChange(playerid, newinteriorid, oldinteriorid)
 {
     if (ScbaPlayer[playerid][ScbaMaskOn]) ScbaUpdateBreathing(playerid, GetTickCount(), newinteriorid);

@@ -11,6 +11,7 @@
 #include "features/scba/equipment"
 #include "features/scba/symptoms"
 #include "features/scba/runtime"
+#include "features/scba/fit_editor"
 #include "features/scba/commands"
 #if !defined SCBA_TESTING
     #include "features/scba/hooks"

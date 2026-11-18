@@ -31,6 +31,7 @@ enum E_SCBA_PLAYER
     bool:ScbaHasDistressTime,
     E_SCBA_AIR_BAND:ScbaReportedBand,
     ScbaAttachmentSkin,
+    E_SCBA_PART:ScbaEditingPart,
     E_SCBA_SOURCE:ScbaSupplySource,
     ScbaSupplyIndex,
     ScbaSupplyVehicleId,
@@ -49,6 +50,8 @@ enum E_SCBA_PLAYER
 }
 new ScbaPlayer[MAX_PLAYERS][E_SCBA_PLAYER];
 new ScbaAttachmentSlots[MAX_PLAYERS][SCBA_PART_COUNT];
+new ScbaCharacterPose[MAX_PLAYERS][SCBA_PART_COUNT][E_SCBA_POSE];
+new bool:ScbaHasCharacterPose[MAX_PLAYERS][SCBA_PART_COUNT];
 new PlayerText:ScbaGauge[MAX_PLAYERS][E_SCBA_GAUGE_LAYER];
 new bool:ScbaGaugeVisible[MAX_PLAYERS];
 new bool:ScbaModelsRegistered;
@@ -94,6 +97,13 @@ stock bool:ScbaPlayerAlive(playerid)
     return health > 0.0;
 }
 
+stock ScbaClearCharacterFits(playerid)
+{
+    if (playerid < 0 || playerid >= MAX_PLAYERS) return;
+    for (new E_SCBA_PART:part; part < SCBA_PART_COUNT; part++)
+        ScbaHasCharacterPose[playerid][part] = false;
+}
+
 stock ScbaResetPlayer(playerid)
 {
     for (new E_SCBA_PLAYER:field = E_SCBA_PLAYER:0; field < E_SCBA_PLAYER; field++) ScbaPlayer[playerid][field] = 0;
@@ -102,6 +112,8 @@ stock ScbaResetPlayer(playerid)
     ScbaPlayer[playerid][ScbaNeedleFrame] = SCBA_EMPTY_SLOT;
     ScbaPlayer[playerid][ScbaReportedSymptom] = SCBA_EMPTY_SLOT;
     ScbaPlayer[playerid][ScbaAttachmentSkin] = SCBA_EMPTY_SLOT;
+    ScbaPlayer[playerid][ScbaEditingPart] = SCBA_PART_COUNT;
+    ScbaClearCharacterFits(playerid);
     for (new E_SCBA_PART:part = SCBA_BACKPACK; part < SCBA_PART_COUNT; part++) ScbaAttachmentSlots[playerid][part] = SCBA_EMPTY_SLOT;
     for (new E_SCBA_GAUGE_LAYER:layer; layer < E_SCBA_GAUGE_LAYER; layer++)
         ScbaGauge[playerid][layer] = PlayerText:INVALID_TEXT_DRAW;
