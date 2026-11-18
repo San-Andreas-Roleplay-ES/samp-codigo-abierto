@@ -38,12 +38,14 @@ stock ScbaStopFitEdit(playerid)
 
 stock ScbaBeginFitEdit(playerid, E_SCBA_PART:part)
 {
+    if (!ScbaHasEquipment(playerid))
+        return ScbaReject(playerid, "Primero ponte el equipo con /scba equipar.");
+    if (_:part < 0 || part >= SCBA_PART_COUNT)
+        return SendClientMessage(playerid, SCBA_COLOUR_MUTED, "Usa /scba ajustar equipo o /scba ajustar mascara.");
     if (ScbaHostIsMapping(playerid))
         return ScbaReject(playerid, "Termina la edición del objeto antes de ajustar el SCBA.");
     if (ScbaPlayer[playerid][ScbaEditingPart] != SCBA_PART_COUNT)
         return ScbaReject(playerid, "Ya estás ajustando una pieza. Guarda el ajuste o pulsa Esc.");
-    if (!ScbaHasEquipment(playerid))
-        return ScbaReject(playerid, "Primero ponte el equipo con /scba equipar.");
     if (part == SCBA_MASK && !ScbaPlayer[playerid][ScbaMaskOn])
         return ScbaReject(playerid, "Primero ponte la máscara con /scba mascara.");
     new slot = ScbaAttachmentSlots[playerid][part];

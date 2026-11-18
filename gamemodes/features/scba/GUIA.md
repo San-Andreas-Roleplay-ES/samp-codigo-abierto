@@ -13,7 +13,7 @@ El SCBA es el equipo de respiración autónoma. Llevas el cilindro en la espalda
 
 El equipo viene colocado de fábrica. Si alguna pieza atraviesa el uniforme o la máscara queda separada de la cara, puedes ajustarla sobre tu personaje.
 
-1. Usa `/scba ajustar equipo` con el cilindro puesto o `/scba ajustar mascara` con la máscara puesta. Si escribes solo `/scba ajustar`, el chat te recuerda ambas opciones.
+1. Usa `/scba ajustar equipo` con el cilindro puesto o `/scba ajustar mascara` con la máscara puesta. Con el equipo puesto, `/scba ajustar` o `/scba ajusta` te muestra ambas opciones. Si todavía te falta el equipo, el chat te indica que uses `/scba equipar`.
 2. En el editor, elige **mover** o **girar** y arrastra el eje que quieras ajustar. El equipo conserva el tamaño de su modelo. Puedes hacer el ajuste con el regulador desconectado para conservar el aire. Si lo llevas conectado, el consumo continúa durante la edición.
 3. Pulsa el **icono de guardar** para confirmar o **Esc** para recuperar la posición anterior. Cada pieza tiene su propio ajuste.
 

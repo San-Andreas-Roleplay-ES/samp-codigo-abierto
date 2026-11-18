@@ -496,24 +496,40 @@ stock TestFitEditor()
     new const maskPose[E_SCBA_POSE] = {0.04, 0.09, 0.01, -8.0, 2.0, -161.0};
     new const defaultPack[E_SCBA_POSE] = {-0.079, 0.050, -0.020, 0.0, 90.0, 180.0};
     new const defaultMask[E_SCBA_POSE] = {0.0394, 0.0793, 0.0045, -9.46, -1.27, -164.10};
-    new const badCommands[][] = {"ajustar", "ajustar otro", "ajustar mascara extra", "ajustar equipoxxxxxxxxxxxxxxxxx"};
-    for (new i = 0; i < sizeof(badCommands); i++)
+    new const incompleteCommands[][] = {"ajustar", "  AJUSTA\t", "ajustar otro", "ajusta mascara extra", "ajustar equipoxxxxxxxxxxxxxxxxx"};
+    new const equipHint[] = "Primero ponte el equipo con /scba equipar.";
+    for (new i = 0; i < sizeof(incompleteCommands); i++)
     {
-        TestCommand_scba(0, badCommands[i]);
-        Check(TestEditedSlot[0] == -1 && strfind(TestLastMessage[0], "/scba ajustar equipo") >= 0,
-            "missing or invalid adjustment arguments show piece-specific help");
+        new messages = TestMessages[0];
+        TestCommand_scba(0, incompleteCommands[i]);
+        Check(TestMessages[0] == messages + 1 && !strcmp(TestLastMessage[0], equipHint) && TestEditedSlot[0] == -1,
+            "without the backpack each adjustment request sends only the equip hint");
     }
-    TestCommand_scba(0, "ajustar equipo");
-    Check(TestEditedSlot[0] == -1 && !ScbaHasEquipment(0), "editing cannot grant the player equipment");
-    ScbaEquip(0); TestCommand_scba(0, "ajustar mascara");
-    Check(TestEditedSlot[0] == -1 && !ScbaPlayer[0][ScbaMaskOn], "a removed mask cannot enter the editor");
+    TestCommand_scba(0, "ajusta equipo");
+    Check(TestEditedSlot[0] == -1 && !ScbaHasEquipment(0) && !strcmp(TestLastMessage[0], equipHint),
+        "naming a piece still requires the backpack");
+    ScbaEquip(0);
+    TestAttachments[0][ScbaAttachmentSlots[0][SCBA_BACKPACK]] = 0;
+    TestCommand_scba(0, "ajustar");
+    Check(!ScbaPlayer[0][ScbaEquipped] && !strcmp(TestLastMessage[0], equipHint), "a lost attachment cannot expose the adjustment options");
+
+    ScbaEquip(0);
+    for (new i = 0; i < sizeof(incompleteCommands); i++)
+    {
+        TestCommand_scba(0, incompleteCommands[i]);
+        Check(TestEditedSlot[0] == -1 && strfind(TestLastMessage[0], "/scba ajustar equipo") >= 0
+            && strfind(TestLastMessage[0], "/scba ajustar mascara") >= 0, "a wearer sees both choices for a missing or invalid piece");
+    }
+    TestCommand_scba(0, "ajustar mascara");
+    Check(TestEditedSlot[0] == -1 && !ScbaPlayer[0][ScbaMaskOn] && strfind(TestLastMessage[0], "/scba mascara") >= 0,
+        "a wearer requesting a removed mask receives the specific mask hint");
     ScbaToggleMask(0, TestNow);
     new backpack = ScbaAttachmentSlots[0][SCBA_BACKPACK], mask = ScbaAttachmentSlots[0][SCBA_MASK];
     Check(TestWearsPose(0, SCBA_BACKPACK, defaultPack) && TestWearsPose(0, SCBA_MASK, defaultMask),
         "a character without stats uses the approved offsets and rotations on both parts");
     TestFailEditor = true; TestCommand_scba(0, "ajustar equipo"); TestFailEditor = false;
     Check(ScbaPlayer[0][ScbaEditingPart] == SCBA_PART_COUNT, "a failed native editor does not leave a pending edit");
-    TestCommand_scba(0, " AJUSTAR\t EQUIPO ");
+    TestCommand_scba(0, " AJUSTA\t EQUIPO ");
     TestCommand_scba(0, "ajustar mascara");
     Check(TestEditedSlot[0] == backpack && ScbaPlayer[0][ScbaEditingPart] == SCBA_BACKPACK,
         "only one worn piece is edited at a time, using its actual slot");
@@ -667,6 +683,10 @@ stock TestRegulatorToggle()
     TestNow += SCBA_FULL_AIR_MS; ScbaTickPlayer(0, TestNow);
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS && !TestHealthWrites && !TestSounds[0],
         "standby preserves the full cylinder across a door, even after twice its rated duration");
+    new fullTime[12];
+    format(fullTime, sizeof(fullTime), "%02d:%02d", SCBA_FULL_AIR_SECONDS / 60, SCBA_FULL_AIR_SECONDS % 60);
+    Check(TestGaugeShows(0, "mdl-21002:air_s_off") && !strcmp(TestDrawText[0][_:ScbaGauge[0][SCBA_AIR_READING]], "100%")
+        && !strcmp(TestDrawText[0][_:ScbaGauge[0][SCBA_TIME_READING]], fullTime), "wearing only the mask leaves all displayed readings at standby");
 
     TestCommand_scba(0, "  AiRe\t");
     Check(ScbaPlayer[0][ScbaRegulatorConnected] && TestGaugeShows(0, "mdl-21002:air_s_on"),
