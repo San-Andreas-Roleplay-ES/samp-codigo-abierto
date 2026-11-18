@@ -85,9 +85,9 @@ Las duraciones terminadas en `_MS` se expresan en milisegundos. Las distancias s
 
 | Ajuste | Valor por defecto | Efecto |
 | --- | --- | --- |
-| `SCBA_FULL_AIR_SECONDS` | 1200 s (20 min) | Autonomía de un cilindro lleno. Admite de 1 a 86 400 segundos. |
+| `SCBA_FULL_AIR_SECONDS` | 1200 s (20 min) | Autonomía de un cilindro lleno con el regulador conectado. El tiempo en espera conserva la reserva. Admite de 1 a 86 400 segundos. |
 | `SCBA_LOW_AIR_PERCENT` y `SCBA_CRITICAL_AIR_PERCENT` | 25 % y 10 % | Avisos al llegar a cada porcentaje. El umbral crítico debe ser mayor que cero e inferior al de reserva, y el de reserva inferior al 100 %. |
-| `SCBA_DAMAGE_AMOUNT` y `SCBA_DAMAGE_INTERVAL_MS` | 5 HP cada 2000 ms | Daño con el cilindro agotado, la máscara conectada y el jugador en un interior. Su frecuencia es independiente de la autonomía. |
+| `SCBA_DAMAGE_AMOUNT` y `SCBA_DAMAGE_INTERVAL_MS` | 5 HP cada 2000 ms | Daño con el cilindro agotado, la máscara puesta y el jugador en un interior. Su intervalo sigue corriendo si se desconecta el regulador y es independiente de la autonomía. |
 | `SCBA_SUPPLY_DURATION_MS` | 8000 ms | Duración de la recarga desde que el cliente confirma la animación. |
 | `SCBA_INTERACTION_RADIUS` | 3.0 | Radio común que las filas pueden usar o sustituir por un valor propio. |
 | `SCBA_SERVICE_MOVEMENT_RADIUS` | 0.75 | Desplazamiento que admite la recarga desde donde empezó el jugador. |

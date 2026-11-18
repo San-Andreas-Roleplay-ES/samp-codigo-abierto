@@ -15,7 +15,7 @@ stock bool:ScbaReadWord(const params[], &position, action[], size)
 stock ScbaShowHelp(playerid)
 {
     return SendClientMessage(playerid, SCBA_COLOUR_MUTED,
-        "Uso: /scba equipar, /scba mascara, /scba ajustar, /scba recargar, /scba cancelar o /scba guardar.");
+        "Uso: /scba equipar, /scba mascara, /scba aire, /scba ajustar, /scba recargar, /scba cancelar o /scba guardar.");
 }
 
 stock ScbaHandleCommand(playerid, const params[])
@@ -37,7 +37,8 @@ stock ScbaHandleCommand(playerid, const params[])
             return SendClientMessage(playerid, SCBA_COLOUR_MUTED, "Usa /scba ajustar equipo o /scba ajustar mascara.");
     }
     else if (params[position]) return ScbaShowHelp(playerid);
-    ScbaTickPlayer(playerid, GetTickCount());
+    new now = GetTickCount();
+    ScbaTickPlayer(playerid, now);
     if (!ScbaPlayerAlive(playerid))
         return SendClientMessage(playerid, SCBA_COLOUR_MUTED, "Debes estar vivo para utilizar el equipo.");
     if (!strcmp(action, "cancelar", true))
@@ -50,8 +51,9 @@ stock ScbaHandleCommand(playerid, const params[])
         return SendClientMessage(playerid, SCBA_COLOUR_MUTED, "Recarga en curso. Usa /scba cancelar para interrumpirla.");
     if (part != SCBA_PART_COUNT) ScbaBeginFitEdit(playerid, part);
     else if (!strcmp(action, "equipar", true)) ScbaEquip(playerid);
-    else if (!strcmp(action, "mascara", true)) ScbaToggleMask(playerid, GetTickCount());
-    else if (!strcmp(action, "recargar", true)) ScbaBeginSupply(playerid, GetTickCount());
+    else if (!strcmp(action, "mascara", true)) ScbaToggleMask(playerid, now);
+    else if (!strcmp(action, "aire", true)) ScbaToggleAir(playerid, now);
+    else if (!strcmp(action, "recargar", true)) ScbaBeginSupply(playerid, now);
     else if (!strcmp(action, "guardar", true)) ScbaStore(playerid);
     else ScbaShowHelp(playerid);
     return 1;

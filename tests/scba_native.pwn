@@ -43,12 +43,12 @@ public RunScbaNativeTests()
         CheckNative(GetPlayerVirtualWorld(npc) == 7 && GetPlayerInterior(npc) == 0
             && !ScbaHostIsIndoors(npc, GetPlayerInterior(npc)), "a native virtual world can still be outdoors");
         ScbaPlayer[npc][ScbaMaskOn] = true;
-        ScbaPlayer[npc][ScbaAirRemainingMs] = 0;
-        ScbaPlayer[npc][ScbaLastAirUpdate] = GetTickCount();
+        ScbaPlayer[npc][ScbaLastAirUpdate] = GetTickCount() - SCBA_SECOND_MS;
         FCNPC_SetInterior(npc, 11);
         CallLocalFunction("OnPlayerInteriorChange", "iii", npc, 11, 0);
         CheckNative(GetPlayerInterior(npc) == 11 && ScbaHostIsIndoors(npc, GetPlayerInterior(npc))
             && ScbaPlayer[npc][ScbaBreathingIndoors], "a real interior ID and the production door callback enable indoor exposure");
+        CheckNative(ScbaPlayer[npc][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS, "a native door callback does not drain air with the regulator disconnected");
         FCNPC_SetInterior(npc, 0);
         CallLocalFunction("OnPlayerInteriorChange", "iii", npc, 0, 11);
         CheckNative(GetPlayerInterior(npc) == 0 && !ScbaPlayer[npc][ScbaBreathingIndoors],
@@ -72,12 +72,20 @@ public RunScbaNativeTests()
         CheckNative(!ScbaPlayer[npc][ScbaTruckControlsLocked], "SCBA releases only its movement lock");
         CheckNative(SetPlayerAttachedObject(npc, 0, 1271, 7) != 0, "an unrelated accessory occupies its own slot");
         CheckNative(ScbaAttachPart(npc, SCBA_BACKPACK), "production attachment accepts the downloaded backpack model");
-        CheckNative(ScbaAttachPart(npc, SCBA_MASK), "production attachment accepts the downloaded mask model");
+        ScbaPlayer[npc][ScbaEquipped] = true;
+        CheckNative(ScbaToggleMask(npc, GetTickCount()) && !ScbaPlayer[npc][ScbaRegulatorConnected],
+            "the downloaded mask attaches in standby on skin 277");
         new back = ScbaAttachmentSlots[npc][SCBA_BACKPACK], mask = ScbaAttachmentSlots[npc][SCBA_MASK];
         CheckNative(back != mask && back != 0 && mask != 0, "production allocator keeps all three attachments separate");
         if (back != SCBA_EMPTY_SLOT && mask != SCBA_EMPTY_SLOT)
             CheckNative(IsPlayerAttachedObjectSlotUsed(npc, back) != 0 && IsPlayerAttachedObjectSlotUsed(npc, mask) != 0,
                 "real SA-MP attachment slots contain both custom models");
+        new now = GetTickCount();
+        CheckNative(ScbaToggleAir(npc, now) && ScbaPlayer[npc][ScbaRegulatorConnected], "the regulator can connect to the worn native mask");
+        ScbaUpdateBreathing(npc, now + SCBA_SECOND_MS, GetPlayerInterior(npc));
+        CheckNative(ScbaToggleAir(npc, now + SCBA_SECOND_MS) && !ScbaPlayer[npc][ScbaRegulatorConnected]
+            && ScbaPlayer[npc][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS - SCBA_SECOND_MS && IsPlayerAttachedObjectSlotUsed(npc, mask),
+            "disconnecting after one second retains the real mask attachment and the remaining air");
         new const pose[E_SCBA_POSE] = {0.03, 0.08, 0.01, 2.0, -3.0, 4.0};
         CheckNative(ScbaSetCharacterFit(npc, SCBA_MASK, pose) && ScbaHasCharacterPose[npc][SCBA_MASK],
             "a loaded mask fit is applied to a real occupied attachment slot");

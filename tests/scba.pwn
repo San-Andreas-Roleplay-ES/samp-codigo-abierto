@@ -353,6 +353,7 @@ stock EquipAndActivate(playerid = 0)
 {
     ScbaHandleCommand(playerid, "equipar");
     ScbaHandleCommand(playerid, "mascara");
+    ScbaHandleCommand(playerid, "aire");
 }
 
 stock PrepareVehicle()
@@ -368,7 +369,7 @@ stock TestCommandsAndPermissions()
     ResetTest();
     TestCommand_scba(0, "");
     Check(TestMessages[0] == 1 && strfind(TestLastMessage[0], "/scba equipar") >= 0
-        && strfind(TestLastMessage[0], "/scba info") == -1 && !TestActiveDraws(0), "bare command lists only the available actions");
+        && strfind(TestLastMessage[0], "/scba aire") >= 0 && strfind(TestLastMessage[0], "/scba info") == -1 && !TestActiveDraws(0), "bare command lists only the available actions");
     TestCommand_scba(0, "  INFO ");
     Check(TestMessages[0] == 2 && strfind(TestLastMessage[0], "Uso:") == 0 && strfind(TestLastMessage[0], "100%") == -1,
         "the retired info command follows normal help without reporting a cylinder");
@@ -381,7 +382,7 @@ stock TestCommandsAndPermissions()
     TestNpc[0] = false; TestHealth[0] = 0.0; ScbaHandleCommand(0, "equipar");
     Check(!ScbaPlayer[0][ScbaEquipped], "dead players cannot equip");
     TestHealth[0] = 100.0;
-    new badCommands[][] = {"equipar otro", "mascara activar", "equiparxxxxxxxxxxxxxxxxxxx", "recargar basura"};
+    new badCommands[][] = {"equipar otro", "mascara activar", "aire activar", "equiparxxxxxxxxxxxxxxxxxxx", "recargar basura"};
     for (new i = 0; i < sizeof(badCommands); i++)
     {
         ScbaHandleCommand(0, badCommands[i]);
@@ -531,6 +532,10 @@ stock TestFitEditor()
     Check(TestEditedSlot[0] == mask, "the mask command opens its own native editor");
     new airBeforeEdit = ScbaPlayer[0][ScbaAirRemainingMs];
     TestNow += SCBA_SECOND_MS; ScbaTickPlayer(0, TestNow);
+    Check(ScbaPlayer[0][ScbaAirRemainingMs] == airBeforeEdit && TestEditedSlot[0] == mask,
+        "the worn mask can be fitted without connecting the regulator or consuming air");
+    TestCommand_scba(0, "aire");
+    TestNow += SCBA_SECOND_MS; ScbaTickPlayer(0, TestNow);
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == airBeforeEdit - SCBA_SECOND_MS && ScbaGaugeVisible[0],
         "adjusting a connected mask keeps breathing and the gauge running");
     TestFitResponse(0, SCBA_MASK, EDIT_RESPONSE_CANCEL, maskPose);
@@ -607,6 +612,8 @@ stock TestEquipmentAndHud()
         "backpack and mask bind the registered custom models to their configured bones");
     Check(floatabs(TestPartRotation[0][8][1] - 90.0) < 0.001 && floatabs(TestPartRotation[0][6][2]) > 150.0,
         "skin 277 receives the upright cylinder and forward-facing mask transforms");
+    Check(TestGaugeShows(0, "mdl-21002:air_s_off"), "a worn mask with a detached regulator shows disconnected");
+    ScbaHandleCommand(0, "aire");
     Check(ScbaGaugeVisible[0] && TestActiveDraws(0) == _:E_SCBA_GAUGE_LAYER,
         "the complete gauge stays visible while breathing");
     Check(TestDrawCalls == beforeMask && TestGaugeShows(0, "mdl-21002:air_s_on"), "connecting the regulator reuses the same gauge");
@@ -645,16 +652,53 @@ stock TestEquipmentAndHud()
         "skin changes reapply both configured fitting profiles");
 }
 
+stock TestRegulatorToggle()
+{
+    ResetTest();
+    ScbaHandleCommand(0, "aire"); ScbaHandleCommand(0, "equipar"); ScbaHandleCommand(0, "aire");
+    Check(!ScbaPlayer[0][ScbaRegulatorConnected] && !ScbaPlayer[0][ScbaMaskOn] && strfind(TestLastMessage[0], "/scba mascara") >= 0,
+        "the air toggle requires a worn mask and never equips it implicitly");
+    ScbaHandleCommand(0, "mascara");
+    new mask = ScbaAttachmentSlots[0][SCBA_MASK], attachments = TestAttachCalls;
+    Check(!ScbaPlayer[0][ScbaRegulatorConnected] && strfind(TestLastMessage[0], "/scba aire") >= 0,
+        "putting on the mask leaves the regulator disconnected and explains how to connect it");
+    TestNow += SCBA_FULL_AIR_MS; TestInterior[0] = TEST_ROOM_INTERIOR;
+    ScbaUpdateBreathing(0, TestNow, TestInterior[0]);
+    TestNow += SCBA_FULL_AIR_MS; ScbaTickPlayer(0, TestNow);
+    Check(ScbaPlayer[0][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS && !TestHealthWrites && !TestSounds[0],
+        "standby preserves the full cylinder across a door, even after twice its rated duration");
+
+    TestCommand_scba(0, "  AiRe\t");
+    Check(ScbaPlayer[0][ScbaRegulatorConnected] && TestGaugeShows(0, "mdl-21002:air_s_on"),
+        "the first toggle connects the regulator and updates the gauge immediately");
+    ScbaHandleCommand(0, "aire extra");
+    Check(ScbaPlayer[0][ScbaRegulatorConnected], "extra arguments cannot accidentally disconnect the regulator");
+    TestNow += 1537; ScbaHandleCommand(0, "aire");
+    new remaining = ScbaPlayer[0][ScbaAirRemainingMs];
+    Check(remaining == SCBA_FULL_AIR_MS - 1537 && !ScbaPlayer[0][ScbaRegulatorConnected] && TestGaugeShows(0, "mdl-21002:air_s_off"),
+        "the second toggle settles active time exactly, including the fraction since the last pulse");
+    Check(ScbaPlayer[0][ScbaMaskOn] && TestSlotUsed(0, mask) && ScbaAttachmentSlots[0][SCBA_MASK] == mask && TestAttachCalls == attachments,
+        "switching the regulator never removes or replaces the fitted mask");
+    TestNow += SCBA_FULL_AIR_MS; TestInterior[0] = 0;
+    ScbaUpdateBreathing(0, TestNow, TestInterior[0]); ScbaTickPlayer(0, TestNow);
+    ScbaHandleCommand(0, "aire"); TestNow += 643; ScbaHandleCommand(0, "mascara");
+    Check(ScbaPlayer[0][ScbaAirRemainingMs] == remaining - 643 && !ScbaPlayer[0][ScbaRegulatorConnected] && !ScbaPlayer[0][ScbaMaskOn],
+        "resuming skips the entire pause, and removing the mask closes the regulator");
+    ScbaHandleCommand(0, "mascara"); TestNow += SCBA_FULL_AIR_MS; ScbaTickPlayer(0, TestNow);
+    Check(!ScbaPlayer[0][ScbaRegulatorConnected] && ScbaPlayer[0][ScbaAirRemainingMs] == remaining - 643,
+        "putting the mask back on always starts in standby");
+}
+
 stock TestAirAndDamage()
 {
     ResetTest(TEST_ROOM_INTERIOR); ScbaHandleCommand(0, "equipar"); TestNow += 10000; ScbaTickPlayer(0, TestNow);
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS, "carrying the backpack does not consume air");
-    ScbaHandleCommand(0, "mascara"); TestNow += 1234; ScbaTickPlayer(0, TestNow);
+    ScbaHandleCommand(0, "mascara"); ScbaHandleCommand(0, "aire"); TestNow += 1234; ScbaTickPlayer(0, TestNow);
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS - 1234, "air follows elapsed milliseconds rather than timer pulse count");
     ScbaHandleCommand(0, "mascara"); new remaining = ScbaPlayer[0][ScbaAirRemainingMs];
     TestNow += 600000; ScbaTickPlayer(0, TestNow); ScbaHandleCommand(0, "mascara");
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == remaining, "mask pause and reactivation neither drain nor refill stored air");
-    TestNow += remaining; ScbaTickPlayer(0, TestNow);
+    ScbaHandleCommand(0, "aire"); TestNow += remaining; ScbaTickPlayer(0, TestNow);
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == 0 && TestHealth[0] == 100.0, "exact exhaustion reaches zero without immediate damage");
     TestNow += SCBA_DAMAGE_INTERVAL_MS - 1; ScbaTickPlayer(0, TestNow);
     Check(!TestHealthWrites, "empty-cylinder damage waits for the configured interval");
@@ -664,13 +708,20 @@ stock TestAirAndDamage()
         "the first actual air damage emits anonymous distress");
     TestNow += SCBA_DAMAGE_INTERVAL_MS * 20; ScbaTickPlayer(0, TestNow);
     Check(TestHealthWrites == 2, "a late pulse does not replay a burst of missed damage ticks");
+    TestNow += SCBA_DAMAGE_INTERVAL_MS - 1; ScbaHandleCommand(0, "aire");
+    Check(!ScbaPlayer[0][ScbaRegulatorConnected] && TestGaugeShows(0, "mdl-21002:air_s_empty") && TestHealthWrites == 2,
+        "disconnecting an exhausted cylinder keeps the empty reading and the existing indoor damage deadline");
+    TestNow++; ScbaTickPlayer(0, TestNow);
+    Check(TestHealthWrites == 3, "disconnecting does not postpone damage from an already empty cylinder indoors");
     ScbaHandleCommand(0, "mascara"); new writes = TestHealthWrites;
     TestNow += 60000; ScbaTickPlayer(0, TestNow);
     Check(TestHealthWrites == writes && TestGaugeShows(0, "mdl-21002:air_s_off")
         && !strcmp(TestDrawText[0][_:ScbaGauge[0][SCBA_AIR_READING]], "0%"),
         "removing an empty mask stops damage and shows the disconnected empty cylinder");
     ScbaHandleCommand(0, "mascara");
-    Check(!ScbaPlayer[0][ScbaMaskOn], "an empty cylinder requires supply before mask reactivation");
+    ScbaHandleCommand(0, "aire");
+    Check(ScbaPlayer[0][ScbaMaskOn] && !ScbaPlayer[0][ScbaRegulatorConnected] && TestGaugeShows(0, "mdl-21002:air_s_empty")
+        && strfind(TestLastMessage[0], "/scba recargar") >= 0, "an empty cylinder can be worn for fitting but cannot supply air");
 
     ResetTest(TEST_ROOM_INTERIOR); TestNow = 0x7FFFFD00; EquipAndActivate(); TestNow += 2000; ScbaTickPlayer(0, TestNow);
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS - 2000, "elapsed air consumption survives signed GetTickCount wrap");
@@ -929,8 +980,13 @@ stock TestAlarmPrivacy()
     Check(TestSounds[1] == 1 && TestMessages[1] == 1, "alarm cooldown avoids sound bursts and repeated environment messages");
     TestNow++; ScbaTickPlayer(0, TestNow);
     Check(TestSounds[1] == 2 && TestMessages[1] == 1, "periodic alarm sound does not repeat the environment text");
-    ScbaHandleCommand(0, "mascara"); new sounds = TestSounds[1];
-    ScbaHandleCommand(0, "mascara");
+    ScbaHandleCommand(0, "aire"); new sounds = TestSounds[1];
+    TestNow += 2 * SCBA_ALARM_INTERVAL_MS; ScbaTickPlayer(0, TestNow);
+    Check(TestSounds[1] == sounds, "reserve alarms stay silent while the regulator is disconnected");
+    ScbaHandleCommand(0, "aire");
+    Check(TestSounds[1] == sounds + 1 && ScbaPlayer[0][ScbaReportedBand] == SCBA_AIR_LOW, "reconnecting at low air resumes the existing alarm band");
+    ScbaHandleCommand(0, "mascara"); sounds = TestSounds[1];
+    ScbaHandleCommand(0, "mascara"); ScbaHandleCommand(0, "aire");
     Check(TestSounds[1] == sounds, "mask toggling cannot bypass the alarm cooldown");
     TestNow += SCBA_HUD_INTERVAL_MS; ScbaPlayer[0][ScbaAirRemainingMs] = SCBA_FULL_AIR_MS * SCBA_CRITICAL_AIR_PERCENT / 100;
     ScbaTickPlayer(0, TestNow);
@@ -950,7 +1006,8 @@ stock TestStatusAndStorage()
     ScbaHandleCommand(0, "equipar");
     Check(TestGaugeShows(0, "mdl-21002:air_s_off"), "the equipment shows the disconnected status without a mask");
     ScbaHandleCommand(0, "mascara");
-    Check(TestGaugeShows(0, "mdl-21002:air_s_on"), "the connected mask has its own visible status");
+    ScbaHandleCommand(0, "aire");
+    Check(TestGaugeShows(0, "mdl-21002:air_s_on"), "the connected regulator has its own visible status");
 
     ScbaSupplyPoints[0][ScbaPointActions] = _:SCBA_REFILL;
     ScbaHandleCommand(0, "guardar");
@@ -1033,10 +1090,15 @@ stock TestRefillAndCancellation()
     ResetTest(); EquipAndActivate(); TestNow += 20000; ScbaTickPlayer(0, TestNow);
     ScbaHandleCommand(0, "recargar");
     Check(ScbaPlayer[0][ScbaSupplySource] == SCBA_SOURCE_NONE, "supply requires the mask to be removed");
+    ScbaHandleCommand(0, "aire"); ScbaHandleCommand(0, "recargar");
+    Check(ScbaPlayer[0][ScbaSupplySource] == SCBA_SOURCE_NONE, "disconnecting air alone does not remove the mask for service");
     ScbaHandleCommand(0, "mascara"); new remaining = ScbaPlayer[0][ScbaAirRemainingMs];
     ScbaHandleCommand(0, "recargar");
     Check(ScbaPlayer[0][ScbaSupplySource] == SCBA_SOURCE_POINT && TestAnimation[0] == 168 && TestControl[0],
         "HQ refill starts the configured timed service and animation");
+    ScbaHandleCommand(0, "aire");
+    Check(!ScbaPlayer[0][ScbaRegulatorConnected] && ScbaPlayer[0][ScbaSupplySource] == SCBA_SOURCE_POINT,
+        "the regulator command leaves an ongoing refill intact");
     TestNow += SCBA_SUPPLY_DURATION_MS - 1; ScbaTickPlayer(0, TestNow);
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == remaining, "an incomplete service never restores air");
     TestNow++; ScbaTickPlayer(0, TestNow);
@@ -1191,7 +1253,8 @@ stock TestLifecycleAndFailures()
         else
             Check(!ScbaPlayer[0][ScbaEquipped] && !ScbaPlayer[0][ScbaMaskOn] && !TestActiveDraws(0),
                 "death, spectating and losing the backpack release equipment and UI");
-        Check(!TestHealthWrites, "invalid participants are cleaned before empty-cylinder damage");
+        Check(!ScbaPlayer[0][ScbaRegulatorConnected] && !TestHealthWrites,
+            "loss of a worn part or the player stops the regulator before empty-cylinder damage");
     }
     ResetTest(TEST_ROOM_INTERIOR); EquipAndActivate();
     ScbaPlayer[0][ScbaAirRemainingMs] = 0; ScbaPlayer[0][ScbaNextDamageAt] = TestNow + SCBA_DAMAGE_INTERVAL_MS;
@@ -1329,6 +1392,7 @@ public OnGameModeInit()
     TestSourcePolicies();
     TestEquipmentAndHud();
     TestFitEditor();
+    TestRegulatorToggle();
     TestAirAndDamage();
     TestIndoorAirDamage();
     TestEmptyCylinderCadence();

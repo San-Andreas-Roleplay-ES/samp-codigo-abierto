@@ -27,11 +27,12 @@ stock ScbaCancelSupply(playerid, bool:notify)
 stock ScbaRemoveMask(playerid, bool:announce)
 {
     ScbaPlayer[playerid][ScbaMaskOn] = false;
+    ScbaPlayer[playerid][ScbaRegulatorConnected] = false;
     ScbaPlayer[playerid][ScbaBreathingIndoors] = false;
     ScbaRemovePart(playerid, SCBA_MASK);
     ScbaClearSymptoms(playerid);
     ScbaUpdateGauge(playerid, GetTickCount());
-    if (announce) ScbaSendMe(playerid, "desconecta el regulador y se retira la máscara.");
+    if (announce) ScbaSendMe(playerid, "se retira la máscara.");
     return 1;
 }
 
@@ -79,16 +80,35 @@ stock bool:ScbaToggleMask(playerid, now)
         ScbaRemoveMask(playerid, true);
         return true;
     }
-    if (ScbaPlayer[playerid][ScbaAirRemainingMs] <= 0)
-        return ScbaReject(playerid, "El cilindro está vacío. Acércate a un punto de abastecimiento.");
     if (!ScbaAttachPart(playerid, SCBA_MASK))
         return ScbaReject(playerid, "No se pudo colocar la máscara. Necesitas un espacio libre para accesorios.");
     ScbaPlayer[playerid][ScbaMaskOn] = true;
-    ScbaUpdateGauge(playerid, now);
-    ScbaPlayer[playerid][ScbaLastAirUpdate] = now;
     ScbaUpdateBreathing(playerid, now, GetPlayerInterior(playerid));
-    ScbaSendMe(playerid, "se ajusta la máscara y conecta el regulador.");
-    ScbaNotifyReserve(playerid, now);
+    ScbaUpdateGauge(playerid, now);
+    ScbaSendMe(playerid, "se coloca la máscara y ajusta las correas.");
+    SendClientMessage(playerid, SCBA_COLOUR_MUTED, "Usa /scba aire para conectar o desconectar el regulador.");
+    return true;
+}
+
+stock bool:ScbaToggleAir(playerid, now)
+{
+    if (!ScbaPlayer[playerid][ScbaMaskOn])
+        return ScbaReject(playerid, "Ponte la máscara con /scba mascara para conectar el regulador.");
+    if (ScbaPlayer[playerid][ScbaRegulatorConnected])
+    {
+        ScbaPlayer[playerid][ScbaRegulatorConnected] = false;
+        ScbaSendMe(playerid, "desacopla el regulador de la máscara.");
+    }
+    else
+    {
+        if (ScbaPlayer[playerid][ScbaAirRemainingMs] <= 0)
+            return ScbaReject(playerid, "El cilindro está vacío. Retírate la máscara y usa /scba recargar en un punto de abastecimiento.");
+        ScbaPlayer[playerid][ScbaRegulatorConnected] = true;
+        ScbaPlayer[playerid][ScbaLastAirUpdate] = now;
+        ScbaSendMe(playerid, "acopla el regulador a la máscara y empieza a respirar del cilindro.");
+        ScbaNotifyReserve(playerid, now);
+    }
+    ScbaUpdateGauge(playerid, now);
     return true;
 }
 
@@ -201,7 +221,7 @@ stock ScbaAdvanceAir(playerid, now)
 
 stock ScbaUpdateBreathing(playerid, now, interiorid)
 {
-    ScbaAdvanceAir(playerid, now);
+    if (ScbaPlayer[playerid][ScbaRegulatorConnected]) ScbaAdvanceAir(playerid, now);
     new bool:indoors = ScbaHostIsIndoors(playerid, interiorid);
     if (indoors == ScbaPlayer[playerid][ScbaBreathingIndoors]) return 1;
     ScbaPlayer[playerid][ScbaBreathingIndoors] = indoors;
@@ -243,9 +263,9 @@ stock ScbaTickPlayer(playerid, now)
     if (ScbaPlayer[playerid][ScbaDizzinessLevel] > 0 && GetPlayerState(playerid) != PLAYER_STATE_ONFOOT)
         ScbaSetDizziness(playerid, 0);
     ScbaUpdateBreathing(playerid, now, GetPlayerInterior(playerid));
-    ScbaNotifyReserve(playerid, now);
+    if (ScbaPlayer[playerid][ScbaRegulatorConnected]) ScbaNotifyReserve(playerid, now);
     ScbaApplyAirDamage(playerid, now);
-    if (ScbaPlayer[playerid][ScbaMaskOn]
+    if (ScbaPlayer[playerid][ScbaRegulatorConnected]
         && ScbaElapsed(now, ScbaPlayer[playerid][ScbaLastHudUpdate]) >= SCBA_HUD_INTERVAL_MS)
         ScbaUpdateGauge(playerid, now);
     return 1;

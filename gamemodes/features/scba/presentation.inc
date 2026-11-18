@@ -47,11 +47,13 @@ stock E_SCBA_GAUGE_STATUS:ScbaCurrentGaugeStatus(playerid)
 {
     if (ScbaPlayer[playerid][ScbaSupplySource] != SCBA_SOURCE_NONE) return SCBA_STATUS_FILLING;
     if (!ScbaPlayer[playerid][ScbaMaskOn]) return SCBA_STATUS_DISCONNECTED;
-    switch (ScbaAirBand(playerid))
+    new E_SCBA_AIR_BAND:band = ScbaAirBand(playerid);
+    if (band == SCBA_AIR_EMPTY) return SCBA_STATUS_EMPTY;
+    if (!ScbaPlayer[playerid][ScbaRegulatorConnected]) return SCBA_STATUS_DISCONNECTED;
+    switch (band)
     {
         case SCBA_AIR_LOW: return SCBA_STATUS_LOW;
         case SCBA_AIR_CRITICAL: return SCBA_STATUS_CRITICAL;
-        case SCBA_AIR_EMPTY: return SCBA_STATUS_EMPTY;
     }
     return SCBA_STATUS_NORMAL;
 }

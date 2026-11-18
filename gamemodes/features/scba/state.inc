@@ -15,6 +15,7 @@ enum E_SCBA_PLAYER
 {
     bool:ScbaEquipped,
     bool:ScbaMaskOn,
+    bool:ScbaRegulatorConnected,
     bool:ScbaBreathingIndoors,
     bool:ScbaAssetsReady,
     ScbaAirRemainingMs,

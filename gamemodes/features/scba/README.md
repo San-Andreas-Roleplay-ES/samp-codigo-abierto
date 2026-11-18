@@ -22,16 +22,15 @@ La referencia técnica contiene los campos y permisos de cada tipo de puesto, ej
 ## Funcionamiento
 
 El manómetro aparece al equiparse y permanece visible hasta guardar o perder el equipo.
-La aguja, el porcentaje y la autonomía muestran el aire del cilindro. Con la máscara retirada
-se lee «DESCONECTADO» y la lectura queda fija. Al conectar el regulador empieza el consumo
-y el estado pasa a «EN SERVICIO», «RESERVA», «AIRE MUY BAJO» o «SIN AIRE» según la reserva.
-La reserva inicial dura veinte minutos de uso. El cilindro consume aire tanto dentro como fuera.
-Retirar la máscara o guardar el equipo conserva el aire restante.
+La aguja, el porcentaje y la autonomía muestran el aire del cilindro. `/scba mascara` coloca o retira la máscara.
+Con la máscara puesta, `/scba aire` conecta el regulador y empieza el consumo. Repetirlo desconecta el regulador y conserva la reserva.
+La franja muestra «DESCONECTADO» en espera y «EN SERVICIO», «RESERVA» o «AIRE MUY BAJO» al consumir. Con la máscara puesta y el cilindro vacío muestra «SIN AIRE».
+La reserva inicial dura veinte minutos de consumo, tanto dentro como fuera. Al retirar la máscara o guardar el equipo, el regulador se desconecta.
 
-El personaje pierde 5 HP cada 2 segundos mientras está en un interior con la máscara conectada y el cilindro vacío.
+El personaje pierde 5 HP cada 2 segundos mientras está en un interior con la máscara puesta y el cilindro vacío. Desconectar el regulador en esas condiciones conserva el intervalo de daño.
 El primer descuento llega tras 2 segundos en esas condiciones. Salir al exterior o quitarse la máscara detiene el daño,
-los jadeos y el mareo del SCBA. Al volver a entrar con la máscara conectada y el cilindro vacío empieza un intervalo nuevo.
-El aire y las alarmas de reserva siguen su curso en el exterior. La regla se aplica a cualquier interior reconocido,
+los jadeos y el mareo del SCBA. Al volver a entrar con la máscara puesta y el cilindro vacío empieza un intervalo nuevo.
+Con el regulador conectado, el aire y las alarmas de reserva siguen su curso en el exterior. La regla se aplica a cualquier interior reconocido,
 haya o no un incendio. La duración del cilindro, el intervalo y la cantidad de daño se configuran por separado.
 
 Para recargar hay que estar a pie con la máscara retirada. En un punto fijo, alejarse interrumpe la recarga.
@@ -126,7 +125,7 @@ Esta opción requiere FCNPC-DL 2.0.11. Busca .local-server/plugins/FCNPC-DL.dll 
 -NpcPlugin. No necesita datos de colisión para esta comprobación de accesorios.
 
 El arnés comprueba la primera recarga, el audio del puesto y del camión, la devolución del equipo,
-la duración del manómetro y sus estados. También verifica la frecuencia de los jadeos, la progresión
+la duración del cilindro y los estados del manómetro. Simula colocar la máscara en espera, conectar y desconectar el regulador entre pulsos y reanudar desde la reserva anterior. También verifica la frecuencia de los jadeos, la progresión
 del mareo y el alcance de las alarmas. Comprueba que el daño se detiene al salir y espera un intervalo completo al volver a entrar.
 Compara la secuencia de daño dentro de un interior con la autonomía normal y con un cilindro de 60 segundos. Los resultados quedan en
 `core-server.log`, `short-cylinder.log` y, al usar la opción nativa, `native-server.log`.
@@ -141,7 +140,7 @@ Los ejecutables de pruebas y el AMX candidato no sustituyen el servidor jugable.
 ## QA en cliente
 
 El ajuste se contrastó de frente, de perfil y de espaldas con la malla y los huesos de la skin 277.
-Para la prueba local, equípate en el puesto y conecta la máscara. Con el cilindro vacío, comprueba que la vida se mantiene
+Para la prueba local, equípate en el puesto, ponte la máscara con `/scba mascara` y conecta el regulador con `/scba aire`. Con el cilindro vacío, comprueba que la vida se mantiene
 en la calle. Usa `/irpos 508.7362 -87.4335 998.9609 0 11` para entrar en el interior que utiliza la selección de personaje.
 A los dos segundos empieza el daño. Con `/irpos 1544.3810 -1675.4711 13.5583 0 0` vuelves al puesto y el daño se detiene.
 El primer descuento deja la cámara estable incluso si el personaje ya estaba herido.
