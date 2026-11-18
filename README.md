@@ -27,5 +27,13 @@ El objetivo de este proyecto de código abierto es democratizar el conocimiento, 
 2. Descomprimir el Pawn Compiler en la carpeta /pawno.
 3. Compilar en tu editor favorito y ejecutar samp-server.exe.
 
+## SCBA para LSFD
+
+Equipamiento de respiración con tanque y máscara, veinte minutos de autonomía, manómetro
+con aguja, alarmas de proximidad anónimas y abastecimiento mediante instalaciones o
+vehículos autorizados. Se utiliza con /scba y sus subcomandos.
+La documentación incluye el uso del equipo, el registro de puestos y vehículos, y las pruebas del módulo. [Guía para jugadores](gamemodes/features/scba/GUIA.md) · [Configuración de puntos y flota](gamemodes/features/scba/CONFIGURACION.md) · [Integración y pruebas](gamemodes/features/scba/README.md)
+Cualquier jugador puede usar el equipo en los puntos habilitados. La HQ y la flota quedan pendientes de definir.
+
 ## Licencia
 Este proyecto está licenciado bajo los términos de la [Licencia MIT](https://opensource.org/licenses/MIT). Eres libre de usar, modificar y distribuir este software con pocas restricciones.  
