@@ -13,11 +13,13 @@ El SCBA es el equipo de respiración autónoma. Llevas el cilindro en la espalda
 
 El equipo viene colocado de fábrica. Si alguna pieza atraviesa el uniforme o la máscara queda separada de la cara, puedes ajustarla sobre tu personaje.
 
-1. Usa `/scba ajustar equipo` con el cilindro puesto o `/scba ajustar mascara` con la máscara puesta. Con el equipo puesto, `/scba ajustar` o `/scba ajusta` te muestra ambas opciones. Si todavía te falta el equipo, el chat te indica que uses `/scba equipar`.
+1. Usa `/scba ajustar equipo` con el cilindro puesto o `/scba ajustar mascara` con la máscara puesta. Con el equipo puesto, `/scba ajustar` muestra las opciones. Si todavía te falta el equipo, el chat te indica que uses `/scba equipar`.
 2. En el editor, elige **mover** o **girar** y arrastra el eje que quieras ajustar. El equipo conserva el tamaño de su modelo. Puedes hacer el ajuste con el regulador desconectado para conservar el aire. Si lo llevas conectado, el consumo continúa durante la edición.
-3. Pulsa el **icono de guardar** para confirmar o **Esc** para recuperar la posición anterior. Cada pieza tiene su propio ajuste.
+3. Pulsa el **icono de guardar**. El chat confirma «Ajuste de la pieza guardado». Pulsa **Esc** si quieres conservar la posición anterior. Cada pieza se guarda por separado.
 
-Al guardar y volver a equiparte durante la misma conexión, recuperas tu ajuste. Si el servidor lo guarda en la ficha del personaje, también lo recuperas al volver a entrar.
+Los ajustes se conservan al usar `/scba guardar`, al volver a equiparte y al reaparecer durante la misma sesión. En el servidor de pruebas, la siguiente conexión empieza con la calibración original.
+
+Para recuperar la posición y la rotación originales de **ambas piezas**, termina la edición y usa `/scba ajustar reset` con el equipo puesto. Funciona también si llevas la máscara retirada. La próxima vez que te equipes se aplicará la calibración original.
 
 ## Leer el manómetro
 
@@ -34,13 +36,15 @@ La aguja y el porcentaje indican cuánto aire queda. **TIEMPO** muestra los minu
 | **SIN AIRE** | Llevas la máscara puesta y el cilindro está vacío. En un interior empiezas a perder vida. |
 | **RECARGANDO** | Estás recargando o cambiando el cilindro. El indicador conserva la lectura anterior hasta que termina. |
 
-Las alarmas y los jadeos se oyen hasta unos 10 metros en el mismo entorno. El aviso en el chat describe lo que se escucha sin identificar a quien lleva el equipo.
+La alarma de reserva emite dos pitidos y la de aire muy bajo, tres. Las alarmas y los jadeos se oyen hasta unos 10 metros en el mismo entorno. El aviso en el chat describe lo que se escucha sin identificar a quien lleva el equipo.
 
 ## Recargar o cambiar el cilindro
 
 Retírate la máscara y usa `/scba recargar` a pie junto a una fuente habilitada. **En un puesto fijo** se oye abrir la válvula al empezar la carga. **En un camión detenido** se oye el acople al cambiar el cilindro. Algunos vehículos permiten solo recargar.
 
-La operación dura **8 segundos** desde que comienza la animación. Quédate junto al puesto o al camión. Puedes usar `/scba cancelar` para interrumpirla, incluso mientras el personaje está agachado junto al vehículo. Si te alejas del puesto o el camión se mueve, el cilindro conserva el aire que tenía.
+El personaje se agacha y la espera depende de cuánto aire falte. Con **75 % de aire** tarda **3,5 segundos**, con **50 %** tarda **5 segundos** y con el cilindro **vacío** tarda **8 segundos**. Una recarga pequeña tarda unos **2 segundos**. En el puesto y en el camión se aplican los mismos tiempos.
+
+Quédate junto al puesto o al camión hasta ver **100 %**. Si usas `/scba cancelar`, te alejas del puesto o el camión se mueve, conservas la carga anterior.
 
 Al terminar verás **100 %** y **DESCONECTADO**. Ponte la máscara con `/scba mascara` y conecta el regulador con `/scba aire` cuando quieras volver a usar el cilindro.
 
@@ -62,8 +66,10 @@ Usa `/scba guardar` a pie donde esté permitido equiparse. Puedes hacerlo con la
 | `/scba equipar` | Recoger el equipo en un lugar habilitado. |
 | `/scba mascara` | Ponerte o retirarte la máscara. |
 | `/scba aire` | Conectar o desconectar el suministro de aire con la máscara puesta. |
+| `/scba ajustar` | Ver las opciones de ajuste con el equipo puesto. |
 | `/scba ajustar equipo` | Mover o girar el cilindro y el arnés que llevas en la espalda. |
 | `/scba ajustar mascara` | Mover o girar la máscara que llevas puesta. |
+| `/scba ajustar reset` | Restablecer la posición y la rotación originales de ambas piezas. |
 | `/scba recargar` | Recargar en un puesto o cambiar el cilindro junto a un vehículo habilitado. |
 | `/scba cancelar` | Interrumpir la recarga o el cambio de cilindro. |
 | `/scba guardar` | Devolver el equipo. |

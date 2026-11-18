@@ -126,6 +126,13 @@ stock bool:ScbaStore(playerid)
     return true;
 }
 
+stock ScbaRefillDuration(remainingMs)
+{
+    new missingMs = SCBA_FULL_AIR_MS - clamp(remainingMs, 0, SCBA_FULL_AIR_MS);
+    new Float:fraction = float(missingMs) / float(SCBA_FULL_AIR_MS);
+    return SCBA_SUPPLY_MIN_MS + floatround(fraction * (SCBA_SUPPLY_MAX_MS - SCBA_SUPPLY_MIN_MS));
+}
+
 stock ScbaStartSupplyWork(playerid, now)
 {
     ScbaPlayer[playerid][ScbaServiceAnimSeen] = true;
@@ -154,6 +161,7 @@ stock bool:ScbaBeginSupply(playerid, now)
         return ScbaReject(playerid, "Acércate a un punto de recarga o vehículo autorizado detenido.");
     ScbaPlayer[playerid][ScbaSupplySource] = source;
     ScbaPlayer[playerid][ScbaSupplyIndex] = index;
+    ScbaPlayer[playerid][ScbaSupplyDurationMs] = ScbaRefillDuration(ScbaPlayer[playerid][ScbaAirRemainingMs]);
     ScbaPlayer[playerid][ScbaSupplyStartedAt] = now;
     GetPlayerPos(playerid, ScbaPlayer[playerid][ScbaSupplyStartX],
         ScbaPlayer[playerid][ScbaSupplyStartY], ScbaPlayer[playerid][ScbaSupplyStartZ]);
@@ -198,7 +206,7 @@ stock ScbaTickSupply(playerid, now)
         return 1;
     }
     if (!ScbaPlayer[playerid][ScbaServiceAnimSeen]) ScbaStartSupplyWork(playerid, now);
-    if (ScbaElapsed(now, ScbaPlayer[playerid][ScbaSupplyStartedAt]) >= SCBA_SUPPLY_DURATION_MS)
+    if (ScbaElapsed(now, ScbaPlayer[playerid][ScbaSupplyStartedAt]) >= ScbaPlayer[playerid][ScbaSupplyDurationMs])
         return ScbaCompleteSupply(playerid);
     return 1;
 }

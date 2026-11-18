@@ -24,18 +24,8 @@ stock ScbaHandleCommand(playerid, const params[])
         return SendClientMessage(playerid, SCBA_COLOUR_MUTED, "No tienes autorización para utilizar el equipo de respiración.");
     new action[SCBA_ACTION_LENGTH], position;
     if (!ScbaReadWord(params, position, action, sizeof(action)) || !action[0]) return ScbaShowHelp(playerid);
-    new bool:adjusting = !strcmp(action, "ajustar", true) || !strcmp(action, "ajusta", true);
-    new E_SCBA_PART:part = SCBA_PART_COUNT;
-    if (adjusting)
-    {
-        new piece[SCBA_ACTION_LENGTH];
-        if (ScbaReadWord(params, position, piece, sizeof(piece)) && !params[position] && piece[0])
-        {
-            if (!strcmp(piece, "equipo", true)) part = SCBA_BACKPACK;
-            else if (!strcmp(piece, "mascara", true)) part = SCBA_MASK;
-        }
-    }
-    else if (params[position]) return ScbaShowHelp(playerid);
+    new bool:adjusting = !strcmp(action, "ajustar", true);
+    if (!adjusting && params[position]) return ScbaShowHelp(playerid);
     new now = GetTickCount();
     ScbaTickPlayer(playerid, now);
     if (!ScbaPlayerAlive(playerid))
@@ -48,7 +38,12 @@ stock ScbaHandleCommand(playerid, const params[])
     }
     if (ScbaPlayer[playerid][ScbaSupplySource] != SCBA_SOURCE_NONE)
         return SendClientMessage(playerid, SCBA_COLOUR_MUTED, "Recarga en curso. Usa /scba cancelar para interrumpirla.");
-    if (adjusting) ScbaBeginFitEdit(playerid, part);
+    if (adjusting)
+    {
+        new option[SCBA_ACTION_LENGTH];
+        if (!ScbaReadWord(params, position, option, sizeof(option)) || params[position]) option[0] = EOS;
+        ScbaHandleFitRequest(playerid, option);
+    }
     else if (!strcmp(action, "equipar", true)) ScbaEquip(playerid);
     else if (!strcmp(action, "mascara", true)) ScbaToggleMask(playerid, now);
     else if (!strcmp(action, "aire", true)) ScbaToggleAir(playerid, now);

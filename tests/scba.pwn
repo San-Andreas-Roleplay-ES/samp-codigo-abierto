@@ -23,7 +23,7 @@ new TestAttachments[MAX_PLAYERS][MAX_PLAYER_ATTACHED_OBJECTS], TestAttachmentBon
 new TestAttachCalls, TestAttachFailAt;
 new Float:TestPartOffset[MAX_PLAYERS][MAX_PLAYER_ATTACHED_OBJECTS][3];
 new Float:TestPartScale[MAX_PLAYERS][MAX_PLAYER_ATTACHED_OBJECTS][3];
-new TestEditedSlot[MAX_PLAYERS], TestClosedEditors, TestFitWrites;
+new TestEditedSlot[MAX_PLAYERS], TestClosedEditors, TestFitWrites, TestFitResets;
 new bool:TestFailEditor, bool:TestFailFitWrite;
 new TestCharacterId[MAX_PLAYERS], TestSavedPose[MAX_PLAYERS][SCBA_PART_COUNT][E_SCBA_POSE];
 new bool:TestSavedPart[MAX_PLAYERS][SCBA_PART_COUNT];
@@ -105,6 +105,14 @@ stock bool:TestSaveFitStat(playerid, E_SCBA_PART:part, const pose[E_SCBA_POSE])
     TestFitWrites++;
     return true;
 }
+stock bool:TestResetFitStats(playerid)
+{
+    if (TestFailFitWrite) return false;
+    new characterid = TestCharacterId[playerid];
+    for (new E_SCBA_PART:part; part < SCBA_PART_COUNT; part++) TestSavedPart[characterid][part] = false;
+    TestFitResets++;
+    return true;
+}
 stock TestRemoveAttachment(playerid, slot) { TestAttachments[playerid][slot] = 0; return 1; }
 stock TestChatText(playerid, colour, const message[])
 {
@@ -155,10 +163,9 @@ stock TestApplyAnimation(playerid, const library[], const name[], Float:speed, l
     }
     TestAnimationAttempts[playerid]++;
     if (TestAnimationMisses[playerid] > 0) { TestAnimationMisses[playerid]--; return 1; }
-    if (!strcmp(name, "BOM_Plant_Loop")) TestAnimation[playerid] = 168;
-    if (!strcmp(library, "CAR") && !strcmp(name, "Fixn_Car_Loop"))
+    if (!strcmp(library, "BOMBER") && !strcmp(name, "BOM_Plant_Loop"))
     {
-        TestAnimation[playerid] = 248;
+        TestAnimation[playerid] = 168;
         TestTruckLoopSynced[playerid] = loop != 0 && sync == 1 && time == 0;
     }
     return 1;
@@ -167,7 +174,6 @@ stock TestAnimationIndex(playerid) { return TestAnimation[playerid]; }
 stock TestAnimationName(index, library[], libsize, name[], namesize)
 {
     if (index == 168) { format(library, libsize, "BOMBER"); format(name, namesize, "BOM_Plant_Loop"); }
-    else if (index == 248) { format(library, libsize, "CAR"); format(name, namesize, "Fixn_Car_Loop"); }
     else { format(library, libsize, "PED"); format(name, namesize, "WALK"); }
     return 1;
 }
@@ -249,7 +255,9 @@ stock TestFindModelName(crc, path[], size)
 #define RemovePlayerAttachedObject TestRemoveAttachment
 #define EditAttachedObject TestEditAttached
 #define CancelEdit TestCancelEdit
+#define SCBA_CUSTOM_FIT_STATS
 #define ScbaHostSaveFit TestSaveFitStat
+#define ScbaHostResetFits TestResetFitStats
 #define SendClientMessage TestMessage
 #define ScbaSendChatText TestChatText
 #define PlayerPlaySound TestSound
@@ -344,7 +352,7 @@ stock ResetTest(interior = 0)
     ScbaAudioBaseUrl[0] = EOS;
     TestDrawCalls = TestDrawFailAt = TestAttachCalls = TestAttachFailAt = TestInvalidDrawCalls = TestHealthWrites = 0;
     TestFailEditor = TestFailFitWrite = false;
-    TestFitWrites = TestClosedEditors = 0;
+    TestFitWrites = TestClosedEditors = TestFitResets = 0;
     TestNow = 1000;
     return 1;
 }
@@ -496,7 +504,7 @@ stock TestFitEditor()
     new const maskPose[E_SCBA_POSE] = {0.04, 0.09, 0.01, -8.0, 2.0, -161.0};
     new const defaultPack[E_SCBA_POSE] = {-0.079, 0.050, -0.020, 0.0, 90.0, 180.0};
     new const defaultMask[E_SCBA_POSE] = {0.0394, 0.0793, 0.0045, -9.46, -1.27, -164.10};
-    new const incompleteCommands[][] = {"ajustar", "  AJUSTA\t", "ajustar otro", "ajusta mascara extra", "ajustar equipoxxxxxxxxxxxxxxxxx"};
+    new const incompleteCommands[][] = {"ajustar", "  AJUSTAR\t", "ajustar otro", "ajustar mascara extra", "ajustar reset otro", "ajustar equipoxxxxxxxxxxxxxxxxx"};
     new const equipHint[] = "Primero ponte el equipo con /scba equipar.";
     for (new i = 0; i < sizeof(incompleteCommands); i++)
     {
@@ -506,6 +514,12 @@ stock TestFitEditor()
             "without the backpack each adjustment request sends only the equip hint");
     }
     TestCommand_scba(0, "ajusta equipo");
+    Check(strfind(TestLastMessage[0], "Uso:") == 0 && TestEditedSlot[0] == -1, "ajusta follows general help");
+    TestCommand_scba(0, "ajuste");
+    Check(strfind(TestLastMessage[0], "Uso:") == 0, "ajuste is not a second adjustment command");
+    TestCommand_scba(0, "ajustar reset");
+    Check(!TestFitResets && !strcmp(TestLastMessage[0], equipHint), "reset first requires the SCBA backpack");
+    TestCommand_scba(0, "ajustar equipo");
     Check(TestEditedSlot[0] == -1 && !ScbaHasEquipment(0) && !strcmp(TestLastMessage[0], equipHint),
         "naming a piece still requires the backpack");
     ScbaEquip(0);
@@ -529,7 +543,7 @@ stock TestFitEditor()
         "a character without stats uses the approved offsets and rotations on both parts");
     TestFailEditor = true; TestCommand_scba(0, "ajustar equipo"); TestFailEditor = false;
     Check(ScbaPlayer[0][ScbaEditingPart] == SCBA_PART_COUNT, "a failed native editor does not leave a pending edit");
-    TestCommand_scba(0, " AJUSTA\t EQUIPO ");
+    TestCommand_scba(0, " AJUSTAR\t EQUIPO ");
     TestCommand_scba(0, "ajustar mascara");
     Check(TestEditedSlot[0] == backpack && ScbaPlayer[0][ScbaEditingPart] == SCBA_BACKPACK,
         "only one worn piece is edited at a time, using its actual slot");
@@ -608,6 +622,30 @@ stock TestFitEditor()
     new const zeroPose[E_SCBA_POSE] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     Check(ScbaSetCharacterFit(1, SCBA_MASK, zeroPose) && TestWearsPose(1, SCBA_MASK, zeroPose) && TestWearsPose(1, SCBA_BACKPACK, packPose),
         "a valid all-zero pose imported on a worn part is distinct from the default");
+
+    TestCommand_scba(1, "ajustar mascara"); TestCommand_scba(1, "ajustar reset");
+    Check(!TestFitResets && ScbaPlayer[1][ScbaEditingPart] == SCBA_MASK, "reset does not discard an active edit");
+    TestFitResponse(1, SCBA_MASK, EDIT_RESPONSE_CANCEL, zeroPose);
+    TestAttachFailAt = TestAttachCalls + 2; TestCommand_scba(1, "ajustar reset"); TestAttachFailAt = 0;
+    Check(!TestFitResets && TestWearsPose(1, SCBA_BACKPACK, packPose) && TestWearsPose(1, SCBA_MASK, zeroPose),
+        "a failed second placement restores the previous fit of both pieces");
+    TestFailFitWrite = true; TestCommand_scba(1, "ajustar reset"); TestFailFitWrite = false;
+    Check(!TestFitResets && TestSavedPart[0][SCBA_BACKPACK] && TestSavedPart[0][SCBA_MASK]
+        && TestWearsPose(1, SCBA_BACKPACK, packPose) && TestWearsPose(1, SCBA_MASK, zeroPose),
+        "a declined deletion preserves both stored and displayed fits");
+    TestCommand_scba(1, "ajustar RESET");
+    Check(TestFitResets == 1 && !TestSavedPart[0][SCBA_BACKPACK] && !TestSavedPart[0][SCBA_MASK]
+        && TestWearsPose(1, SCBA_BACKPACK, defaultPack) && TestWearsPose(1, SCBA_MASK, defaultMask),
+        "reset deletes both overrides for the character and applies both skin defaults immediately");
+    TestCommand_scba(1, "ajustar mascara"); TestFitResponse(1, SCBA_MASK, EDIT_RESPONSE_FINAL, maskPose);
+    TestCommand_scba(1, "mascara"); TestCommand_scba(1, "ajustar reset"); TestCommand_scba(1, "guardar"); EquipAndActivate(1);
+    Check(TestFitResets == 2 && !ScbaHasCharacterPose[1][SCBA_MASK] && !ScbaHasCharacterPose[1][SCBA_BACKPACK]
+        && TestWearsPose(1, SCBA_MASK, defaultMask) && TestWearsPose(1, SCBA_BACKPACK, defaultPack),
+        "reset also clears a removed mask, and both defaults survive storing and re-equipping");
+    TestPartOffset[1][ScbaAttachmentSlots[1][SCBA_BACKPACK]][0] += 0.5;
+    TestCommand_scba(1, "ajustar reset");
+    Check(TestWearsPose(1, SCBA_BACKPACK, defaultPack) && TestWearsPose(1, SCBA_MASK, defaultMask),
+        "repeating a reset also corrects a stale displayed pose when no override exists");
 }
 
 stock TestEquipmentAndHud()
@@ -1087,7 +1125,7 @@ stock TestSupplyAudio()
         else format(url, sizeof(url), "http://audio.test/scba/valvula.mp3");
         Check(!strcmp(TestStreamUrl[1], url) && TestStreamRadius[1] == SCBA_EVENT_RADIUS && TestStreamPositional[1]
             && TestSoundPosition[1][0] == TestPosition[0][0], "the service location selects the fitting or valve cue at its source");
-        ScbaHandleCommand(0, "recargar"); TestNow += SCBA_SUPPLY_DURATION_MS; ScbaTickPlayer(0, TestNow);
+        ScbaHandleCommand(0, "recargar"); TestNow += SCBA_SUPPLY_MAX_MS; ScbaTickPlayer(0, TestNow);
         Check(TestStreamCount[1] == 1 && TestGaugeShows(0, "mdl-21002:air_s_off")
             && !strcmp(TestDrawText[0][_:ScbaGauge[0][SCBA_AIR_READING]], "100%"),
             "one service plays once even with a repeat command and completion immediately updates the disconnected gauge");
@@ -1099,7 +1137,7 @@ stock TestSupplyAudio()
             "an air alarm can take the listener's stream from a short fitting sound");
         ScbaHandleCommand(0, "cancelar"); ScbaHandleCommand(0, "recargar");
         Check(TestStreamCount[1] == 3, "recurring service sounds cannot interrupt an ongoing air alarm");
-        ScbaHandleCommand(0, "cancelar"); TestNow += SCBA_SUPPLY_DURATION_MS; ScbaTickPlayer(0, TestNow);
+        ScbaHandleCommand(0, "cancelar"); TestNow += SCBA_SUPPLY_MAX_MS; ScbaTickPlayer(0, TestNow);
         Check(TestStreamCount[1] == 3 && ScbaPlayer[0][ScbaAirRemainingMs] == 1000,
             "cancelled service does not queue a sound or award air");
     }
@@ -1119,7 +1157,7 @@ stock TestRefillAndCancellation()
     ScbaHandleCommand(0, "aire");
     Check(!ScbaPlayer[0][ScbaRegulatorConnected] && ScbaPlayer[0][ScbaSupplySource] == SCBA_SOURCE_POINT,
         "the regulator command leaves an ongoing refill intact");
-    TestNow += SCBA_SUPPLY_DURATION_MS - 1; ScbaTickPlayer(0, TestNow);
+    TestNow += ScbaPlayer[0][ScbaSupplyDurationMs] - 1; ScbaTickPlayer(0, TestNow);
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == remaining, "an incomplete service never restores air");
     TestNow++; ScbaTickPlayer(0, TestNow);
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS
@@ -1142,12 +1180,12 @@ stock TestRefillAndCancellation()
             case 3: ScbaSupplyPoints[0][ScbaPointEnabled] = false;
             case 4: TestPlayerState[0] = PLAYER_STATE_DRIVER;
         }
-        TestNow += SCBA_SUPPLY_DURATION_MS; ScbaTickPlayer(0, TestNow);
+        TestNow += SCBA_SUPPLY_MAX_MS; ScbaTickPlayer(0, TestNow);
         Check(ScbaPlayer[0][ScbaSupplySource] == SCBA_SOURCE_NONE && ScbaPlayer[0][ScbaAirRemainingMs] == 10000,
             "movement, dimension, disabled source and entering a vehicle cancel service without a free refill");
     }
     ResetTest(); PrepareVehicle(); ScbaHandleCommand(0, "equipar"); ScbaPlayer[0][ScbaAirRemainingMs] = 10000;
-    ScbaHandleCommand(0, "recargar"); TestNow += SCBA_SUPPLY_DURATION_MS; ScbaTickPlayer(0, TestNow);
+    ScbaHandleCommand(0, "recargar"); TestNow += SCBA_SUPPLY_MAX_MS; ScbaTickPlayer(0, TestNow);
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS, "registered stationary truck completes a cylinder replacement");
     for (new cause = 0; cause < 4; cause++)
     {
@@ -1160,14 +1198,41 @@ stock TestRefillAndCancellation()
             case 2: TestVehicleWorld[10] = 1;
             case 3: ScbaSupplyVehicles[0][ScbaVehicleEnabled] = false;
         }
-        TestNow += SCBA_SUPPLY_DURATION_MS; ScbaTickPlayer(0, TestNow);
+        TestNow += SCBA_SUPPLY_MAX_MS; ScbaTickPlayer(0, TestNow);
         Check(ScbaPlayer[0][ScbaAirRemainingMs] == 10000 && ScbaPlayer[0][ScbaSupplySource] == SCBA_SOURCE_NONE,
             "destroyed, moving, dimension-changed and revoked trucks cannot complete service");
     }
     ResetTest(); ScbaHandleCommand(0, "equipar"); ScbaPlayer[0][ScbaAirRemainingMs] = 10000;
     ScbaHandleCommand(0, "recargar"); TestAnimation[0] = 999;
-    TestNow += SCBA_SUPPLY_DURATION_MS; ScbaTickPlayer(0, TestNow);
+    TestNow += SCBA_SUPPLY_MAX_MS; ScbaTickPlayer(0, TestNow);
     Check(!TestClearedAnimations[0] && TestAnimation[0] == 999, "service cleanup does not clear another module's replacement animation");
+}
+
+stock TestRefillDuration()
+{
+    new span = SCBA_SUPPLY_MAX_MS - SCBA_SUPPLY_MIN_MS;
+    for (new truck = 0; truck < 2; truck++)
+    {
+        ResetTest(); if (truck) PrepareVehicle();
+        ScbaHandleCommand(0, "equipar");
+        for (new quarters = 0; quarters < 4; quarters++)
+        {
+            new remaining = SCBA_FULL_AIR_MS / 4 * quarters;
+            ScbaPlayer[0][ScbaAirRemainingMs] = remaining;
+            ScbaHandleCommand(0, "recargar");
+            new expected = SCBA_SUPPLY_MIN_MS + span * (4 - quarters) / 4;
+            Check(ScbaPlayer[0][ScbaSupplyDurationMs] == expected, "refill duration scales with the fraction missing at either source");
+            TestNow += expected - 1; ScbaTickPlayer(0, TestNow);
+            Check(ScbaPlayer[0][ScbaSupplySource] != SCBA_SOURCE_NONE && ScbaPlayer[0][ScbaAirRemainingMs] == remaining,
+                "a partial charge is never awarded before its deadline");
+            TestNow++; ScbaTickPlayer(0, TestNow);
+            Check(ScbaPlayer[0][ScbaSupplySource] == SCBA_SOURCE_NONE && ScbaPlayer[0][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS,
+                "the shorter or longer service finishes exactly at its own deadline");
+        }
+        ScbaPlayer[0][ScbaAirRemainingMs]--;
+        ScbaHandleCommand(0, "recargar");
+        Check(ScbaPlayer[0][ScbaSupplyDurationMs] == SCBA_SUPPLY_MIN_MS, "a nearly full cylinder has the minimum handling time");
+    }
 }
 
 stock TestColdServiceAnimation()
@@ -1177,7 +1242,7 @@ stock TestColdServiceAnimation()
         ResetTest();
         if (truck) PrepareVehicle();
         ScbaHandleCommand(0, "equipar");
-        Check(TestPreloadMask[0] == 3, "equipping warms both animation libraries after the character spawned");
+        Check(TestPreloadMask[0] == 1, "equipping warms the shared crouching animation library after spawn");
         ScbaPlayer[0][ScbaAirRemainingMs] = 1000;
         TestAnimationMisses[0] = 1;
         ScbaHandleCommand(0, "recargar");
@@ -1185,12 +1250,12 @@ stock TestColdServiceAnimation()
         TestNow += SCBA_ANIM_RETRY_MS - 1; ScbaTickPlayer(0, TestNow);
         Check(TestAnimationAttempts[0] == 1, "a cold client has time to load before the retry");
         TestNow++; ScbaTickPlayer(0, TestNow);
-        Check(TestAnimationAttempts[0] == 2 && TestAnimation[0] == (truck ? 248 : 168),
+        Check(TestAnimationAttempts[0] == 2 && TestAnimation[0] == 168,
             "the same command starts the right animation automatically after a cold load");
         TestNow += SCBA_PULSE_INTERVAL_MS; ScbaTickPlayer(0, TestNow);
         Check(TestSounds[1] == 1 && TestLastSound[1] == (truck ? SCBA_FALLBACK_TRUCK_SOUND : SCBA_FALLBACK_STATION_SOUND),
             "delayed animation acknowledgement plays the location's native fallback once");
-        TestNow += SCBA_SUPPLY_DURATION_MS - 1; ScbaTickPlayer(0, TestNow);
+        TestNow += ScbaPlayer[0][ScbaSupplyDurationMs] - 1; ScbaTickPlayer(0, TestNow);
         Check(ScbaPlayer[0][ScbaAirRemainingMs] == 1000 && TestAnimationAttempts[0] == 2, "the full service duration starts when the clip is visible");
         TestNow++; ScbaTickPlayer(0, TestNow);
         Check(ScbaPlayer[0][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS && TestControl[0] && !TestAnimation[0],
@@ -1214,8 +1279,8 @@ stock TestTruckServiceControls()
     TestCommand_scba(0, "equipar");
     ScbaPlayer[0][ScbaAirRemainingMs] = 20000;
     TestCommand_scba(0, "recargar");
-    Check(!TestControl[0] && TestTruckLoopSynced[0] && TestAnimation[0] == 248,
-        "truck service holds controls and syncs a stationary looping mechanic animation");
+    Check(!TestControl[0] && TestTruckLoopSynced[0] && TestAnimation[0] == 168,
+        "truck service holds controls and syncs the stationary crouching animation");
     Check(floatabs(floatcos(TestHeading[0], degrees)) < 0.001 && floatsin(TestHeading[0], degrees) < 0.0,
         "the player faces the truck");
     Check(TestGaugeShows(0, "mdl-21002:air_s_fill") && !TestControl[0],
@@ -1226,7 +1291,7 @@ stock TestTruckServiceControls()
         "deliberately cancelling frees the player without awarding air");
     TestSetControl(0, 0);
     TestCommand_scba(0, "recargar");
-    TestNow += SCBA_SUPPLY_DURATION_MS; ScbaTickPlayer(0, TestNow);
+    TestNow += SCBA_SUPPLY_MAX_MS; ScbaTickPlayer(0, TestNow);
     Check(!TestControl[0] && ScbaPlayer[0][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS,
         "completing a truck exchange preserves a preexisting host movement lock");
     TestSetControl(0, 1);
@@ -1243,13 +1308,13 @@ stock TestTruckServiceControls()
     TestSetControl(0, 1);
     Check(!TestControl[0], "external unlock requests do not prematurely release truck service");
     TestVelocity[10][0] = 1.0;
-    ScbaTickPlayer(0, TestNow + SCBA_SUPPLY_DURATION_MS);
+    ScbaTickPlayer(0, TestNow + SCBA_SUPPLY_MAX_MS);
     Check(TestControl[0] && ScbaPlayer[0][ScbaAirRemainingMs] == 20000,
         "losing the truck restores the latest requested control state without air");
     TestVelocity[10][0] = 0.0;
     TestCommand_scba(0, "recargar");
     TestAnimation[0] = 0;
-    ScbaTickPlayer(0, TestNow + SCBA_SUPPLY_DURATION_MS);
+    ScbaTickPlayer(0, TestNow + SCBA_SUPPLY_MAX_MS);
     Check(TestControl[0] && ScbaPlayer[0][ScbaAirRemainingMs] == 20000,
         "an animation that never started cannot complete a cylinder exchange");
 }
@@ -1319,7 +1384,7 @@ stock TestMultipleSources()
     Check(ScbaPlayer[0][ScbaSupplyIndex] == 1, "service freezes the exact selected station");
     ScbaSupplyPoints[0][ScbaPointEnabled] = true;
     ScbaSupplyPoints[1][ScbaPointEnabled] = false;
-    TestNow += SCBA_SUPPLY_DURATION_MS; ScbaTickPlayer(0, TestNow);
+    TestNow += SCBA_SUPPLY_MAX_MS; ScbaTickPlayer(0, TestNow);
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == 1000, "service cannot migrate to a different newly available station");
 
     ResetTest(); PrepareVehicle(); ScbaSupplyVehicles[0][ScbaVehicleEnabled] = false;
@@ -1332,7 +1397,7 @@ stock TestMultipleSources()
     TestVehicleModel[11] = 407; TestVehicleHealth[11] = 1000.0;
     TestVehiclePosition[11][0] = 100.0; TestVehiclePosition[11][1] = 200.0; TestVehiclePosition[11][2] = 10.0;
     ScbaSupplyVehicles[1][ScbaVehicleId] = 11;
-    TestNow += SCBA_SUPPLY_DURATION_MS; ScbaTickPlayer(0, TestNow);
+    TestNow += SCBA_SUPPLY_MAX_MS; ScbaTickPlayer(0, TestNow);
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == 1000, "a replacement vehicle handle cannot complete the old cylinder change");
 
     ResetTest(); PrepareVehicle(); TestVehicleHealth[10] = 0.0; ScbaHandleCommand(0, "equipar");
@@ -1348,7 +1413,7 @@ stock TestMultipleSources()
     ScbaPlayer[0][ScbaAirRemainingMs] = 1000;
     TestCommand_scba(0, "recargar");
     TestAdmin[0] = false;
-    TestNow += SCBA_SUPPLY_DURATION_MS;
+    TestNow += SCBA_SUPPLY_MAX_MS;
     ScbaTickPlayer(0, TestNow);
     Check(ScbaPlayer[0][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS && ScbaPlayer[0][ScbaEquipped]
         && ScbaPlayer[0][ScbaSupplySource] == SCBA_SOURCE_NONE, "losing RCON while refilling has no effect on service");
@@ -1424,6 +1489,7 @@ public OnGameModeInit()
     TestCustomAlarms();
     TestSupplyAudio();
     TestRefillAndCancellation();
+    TestRefillDuration();
     TestColdServiceAnimation();
     TestTruckServiceControls();
     TestLifecycleAndFailures();

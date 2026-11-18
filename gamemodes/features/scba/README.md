@@ -9,7 +9,7 @@ El gamemode incorpora el SCBA con un solo include en `SARP.pwn`. La guía para j
 | Entrada y eventos de SA-MP | `header.inc` reúne los archivos y `hooks.inc` enlaza el ciclo del jugador con el módulo. |
 | Configuración e integración | `config.inc` define las reglas. `host.inc` adapta el acceso de LSFD, los interiores, la flota y las operaciones nativas de modelos y animaciones. |
 | Equipo y puntos de servicio | `equipment.inc` coloca y retira los accesorios. `sources.inc` comprueba el punto o vehículo tanto al iniciar como durante el abastecimiento. |
-| Ajuste personal de accesorios | `fit_editor.inc` abre el editor nativo, aplica la posición y la rotación de la pieza y conserva el ajuste confirmado. [Integración con los stats del personaje](CONFIGURACION.md#ajuste-personal-en-los-stats-del-personaje) |
+| Ajuste personal de accesorios | `fit_editor.inc` guarda por separado las posiciones y rotaciones confirmadas. `/scba ajustar reset` restablece ambas piezas a la calibración de la skin. [Integración con los stats del personaje](CONFIGURACION.md#ajuste-personal-en-los-stats-del-personaje) |
 | Estado y reglas de juego | `state.inc` conserva la reserva por jugador. `runtime.inc` gestiona el equipo, la recarga y el consumo. `symptoms.inc` aplica los avisos y el mareo. |
 | Interacción con el jugador | `commands.inc` recibe `/scba`. `presentation.inc` dibuja el manómetro y distribuye los eventos de rol y el sonido. |
 
@@ -34,8 +34,8 @@ Con el regulador conectado, el aire y las alarmas de reserva siguen su curso en 
 haya o no un incendio. La duración del cilindro, el intervalo y la cantidad de daño se configuran por separado.
 
 Para recargar hay que estar a pie con la máscara retirada. En un punto fijo, alejarse interrumpe la recarga.
-En el camión, el personaje se orienta hacia el vehículo y permanece en la animación de cambio de cilindro
-durante los ocho segundos configurados. El contador empieza cuando se confirma la animación.
+El personaje se agacha en ambos puntos de servicio. En el camión se orienta hacia el vehículo y mantiene esa postura durante el cambio.
+La espera va de 2 a 8 segundos según la fracción de aire que falta. Con medio cilindro son 5 segundos. El contador empieza cuando se confirma la animación.
 Si el cliente aún está cargando la biblioteca, el sistema reintenta la animación dentro de la misma recarga.
 La franja indica «RECARGANDO». Al completar la recarga vuelve a «DESCONECTADO» y marca el 100 % de aire.
 El jugador puede interrumpirla con `/scba cancelar`.
@@ -70,7 +70,7 @@ Los archivos de `audio/scba/` se reproducen en la posición del personaje.
 | `valvula.mp3` | Una válvula abre y se oye un soplo corto de aire en el puesto de carga. |
 | `acople.mp3` | El encaje metálico y un escape breve al cambiar el cilindro junto al camión. |
 
-La recarga emite un solo efecto cuando el cliente confirma la animación. Una alarma de reserva
+Los dos MP3 de alarma tienen picos de aproximadamente −10,4 dBFS. La recarga emite un solo efecto cuando el cliente confirma la animación. Una alarma de reserva
 tiene prioridad si coincide con un acople. Para activar los cuatro efectos originales, sirve
 el directorio y configura `SCBA_ALARM_BASE_URL` con su URL, sin barra final, antes de compilar.
 Con la URL vacía, el juego utiliza sonidos nativos de respaldo. [Sonidos de SA-MP](https://open.mp/docs/scripting/resources/sound-ids#old-list-from-jbeta)
@@ -133,7 +133,7 @@ Compara la secuencia de daño dentro de un interior con la autonomía normal y c
 El arnés ejecuta las funciones de producción. Simula jugadores, reloj, vehículos, audio
 y TextDraws. El registro de modelos, búsquedas CRC y ejecución Pawn son reales.
 La comprobación opcional usa los callbacks reales de descarga, el control de movimiento y los accesorios sobre la skin 277.
-Las pruebas del editor cubren guardado y cancelación por pieza, el rechazo de una escritura, el cambio de skin y la carga de ajustes en otra conexión mediante stats simulados. La prueba nativa también comprueba que el callback oficial de edición llegue al módulo.
+Las pruebas del editor cubren guardado y cancelación por pieza, el reset de ambas incluso con la máscara retirada, el rechazo de una escritura, el cambio de skin y la carga desde stats simulados. La prueba nativa confirma ambas piezas mediante el callback de guardado, devuelve el equipo, lo vuelve a recoger y restablece los ajustes con los adaptadores de sesión. La recarga se mide con cuatro niveles de aire en cada fuente.
 Las pruebas de juego usan sus propias ubicaciones en memoria y se pueden ejecutar con puntos del servidor ya configurados.
 Los ejecutables de pruebas y el AMX candidato no sustituyen el servidor jugable.
 
@@ -144,7 +144,8 @@ Para la prueba local, equípate en el puesto, ponte la máscara con `/scba masca
 en la calle. Usa `/irpos 508.7362 -87.4335 998.9609 0 11` para entrar en el interior que utiliza la selección de personaje.
 A los dos segundos empieza el daño. Con `/irpos 1544.3810 -1675.4711 13.5583 0 0` vuelves al puesto y el daño se detiene.
 El primer descuento deja la cámara estable incluso si el personaje ya estaba herido.
-Para revisar el resto del equipo, retira la máscara y escucha una recarga en el puesto y otra en el camión con un compañero cerca.
+Para revisar los ajustes, mueve las dos piezas, confirma cada una con el disquete y usa `/scba guardar`. Vuelve a equiparte y ponte la máscara para comprobar ambas posiciones. Repite el ciclo después de `/scba ajustar reset` para comprobar el ajuste de fábrica.
+Para revisar la recarga, retira la máscara y compara un cilindro casi lleno con uno vacío en el puesto y en el camión. Comprueba que el personaje se agacha y que un compañero cercano oye el sonido correspondiente.
 El sonido de falta de aire es un recurso nativo de tos/ahogo, configurable por ID.
 
 Definir la HQ, autorizar la flota y conectar la membresía real son los puntos de

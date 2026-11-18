@@ -88,7 +88,7 @@ Las duraciones terminadas en `_MS` se expresan en milisegundos. Las distancias s
 | `SCBA_FULL_AIR_SECONDS` | 1200 s (20 min) | Autonomía de un cilindro lleno con el regulador conectado. El tiempo en espera conserva la reserva. Admite de 1 a 86 400 segundos. |
 | `SCBA_LOW_AIR_PERCENT` y `SCBA_CRITICAL_AIR_PERCENT` | 25 % y 10 % | Avisos al llegar a cada porcentaje. El umbral crítico debe ser mayor que cero e inferior al de reserva, y el de reserva inferior al 100 %. |
 | `SCBA_DAMAGE_AMOUNT` y `SCBA_DAMAGE_INTERVAL_MS` | 5 HP cada 2000 ms | Daño con el cilindro agotado, la máscara puesta y el jugador en un interior. Su intervalo sigue corriendo si se desconecta el regulador y es independiente de la autonomía. |
-| `SCBA_SUPPLY_DURATION_MS` | 8000 ms | Duración de la recarga desde que el cliente confirma la animación. |
+| `SCBA_SUPPLY_MIN_MS` y `SCBA_SUPPLY_MAX_MS` | 2000 y 8000 ms | Tiempo mínimo de manipulación y duración con el cilindro vacío. El mínimo debe ser positivo y el máximo puede ser igual o mayor. |
 | `SCBA_INTERACTION_RADIUS` | 3.0 | Radio común que las filas pueden usar o sustituir por un valor propio. |
 | `SCBA_SERVICE_MOVEMENT_RADIUS` | 0.75 | Desplazamiento que admite la recarga desde donde empezó el jugador. |
 | `SCBA_VEHICLE_MAX_SPEED` | 0.05 | Magnitud máxima de la velocidad que devuelve `GetVehicleVelocity`, en unidades nativas del juego. |
@@ -97,11 +97,13 @@ Las duraciones terminadas en `_MS` se expresan en milisegundos. Las distancias s
 | `SCBA_PULSE_INTERVAL_MS` y `SCBA_HUD_INTERVAL_MS` | 250 y 1000 ms | Frecuencia de comprobación del equipo y de actualización periódica del manómetro. |
 | `SCBA_ANIM_RETRY_MS` y `SCBA_ANIM_START_TIMEOUT_MS` | 500 y 3000 ms | Espera entre intentos y plazo para que el cliente empiece la animación. |
 
+En ambos tipos de fuente, la duración es `mínimo + (máximo − mínimo) × fracción de aire que falta`, redondeada al milisegundo. Se fija al iniciar el servicio y el reloj arranca cuando el cliente confirma la animación. Con media carga son 5000 ms, tanto con el cilindro de prueba de 60 segundos como con el de 20 minutos. Un cilindro lleno queda fuera del servicio.
+
 | Otros ajustes | Dónde se cambian |
 | --- | --- |
 | Síntomas por nivel de salud | `ScbaSymptoms` reúne, en orden descendente de salud, el umbral, intervalo de jadeos, balanceo inicial y final y mensaje privado. Los jadeos se repiten cada 12 s por encima de 60 HP, cada 6 s por encima de 30 y hasta 60 HP y cada 4 s con 30 HP o menos. |
-| Alarmas y efectos | `SCBA_ALARM_BASE_URL` acepta la URL pública de los cuatro MP3, sin barra final. Con la URL vacía, el cliente reproduce los sonidos nativos. `SCBA_*_CLIP` selecciona los archivos, `SCBA_FALLBACK_*_SOUND` los sonidos nativos y `SCBA_DISTRESS_SOUND` el jadeo. `SCBA_AUDIO_CLIP_WINDOW_MS` reserva 1100 ms por oyente para evitar solapamientos. |
-| Animaciones de recarga | `SCBA_SERVICE_ANIM_LIBRARY` y `SCBA_SERVICE_ANIM_NAME` seleccionan la animación del puesto. `SCBA_TRUCK_ANIM_LIBRARY` y `SCBA_TRUCK_ANIM_NAME` seleccionan la del camión. Ambas usan `SCBA_SERVICE_ANIM_SPEED`. |
+| Alarmas y efectos | `SCBA_ALARM_BASE_URL` acepta la URL pública de los cuatro MP3, sin barra final. Con la URL vacía, el cliente reproduce los sonidos nativos. `SCBA_*_CLIP` selecciona los archivos, `SCBA_FALLBACK_*_SOUND` los sonidos nativos y `SCBA_DISTRESS_SOUND` el jadeo. `SCBA_AUDIO_CLIP_WINDOW_MS` reserva 1100 ms por oyente para evitar solapamientos. Los MP3 de reserva y aire crítico tienen picos de aproximadamente −10,4 dBFS. El volumen de los sonidos nativos depende del cliente. |
+| Animaciones de recarga | `SCBA_SERVICE_ANIM_LIBRARY` y `SCBA_SERVICE_ANIM_NAME` seleccionan la animación del puesto. `SCBA_TRUCK_ANIM_LIBRARY` y `SCBA_TRUCK_ANIM_NAME` usan por defecto la misma animación agachada, `BOMBER/BOM_Plant_Loop`. Pueden configurarse por separado. Ambas usan `SCBA_SERVICE_ANIM_SPEED`. |
 | Manómetro y colores | `SCBA_GAUGE_LEFT`, `SCBA_GAUGE_TOP`, `SCBA_GAUGE_WIDTH` y `SCBA_GAUGE_HEIGHT` sitúan y dimensionan el indicador. El resto de `SCBA_GAUGE_*` ajusta la esfera, la aguja, la franja y las cifras. `ScbaStatusArt` asocia textura, rótulo y color por estado. `SCBA_COLOUR_*` reúne la paleta. |
 | Modelos y ajuste por skin | `ScbaModels` contiene ID personalizado, modelo base, DFF, TXD, hueso y CRC de cada pieza. `ScbaAttachmentFits` define desplazamiento, rotación y escala por skin y pieza. La skin `-1` proporciona el ajuste común, calibrado sobre la 277 de bombero. |
 
@@ -111,8 +113,11 @@ Si cambias el dibujo de la esfera, los fotogramas de la aguja o los rótulos de 
 
 Cada personaje puede tener un ajuste por pieza. La clave de guardado es el **ID persistente del personaje** junto con `SCBA_BACKPACK` (0) o `SCBA_MASK` (1). Para cada pieza se guardan seis valores decimales, en orden de desplazamiento X, Y y Z con respecto al hueso y rotación X, Y y Z en grados. La ausencia de registro usa la calibración de `ScbaAttachmentFits`. Una fila con los seis valores a cero representa un ajuste explícito. El modelo, hueso y escala los determina el servidor.
 
+Para conectar el almacenamiento oficial, define `SCBA_CUSTOM_FIT_STATS` antes de incluir `features/scba/header` e implementa las dos funciones `ScbaHostSaveFit` y `ScbaHostResetFits`. El servidor de pruebas usa los adaptadores de sesión incluidos.
+
 - **Al cargar el personaje**, pasa cada fila a `ScbaSetCharacterFit(playerid, part, pose)`, con un arreglo `pose[E_SCBA_POSE]`. Sus campos son `ScbaOffsetX`, `ScbaOffsetY`, `ScbaOffsetZ`, `ScbaRotationX`, `ScbaRotationY` y `ScbaRotationZ`. Esta llamada también actualiza una pieza ya puesta y evita una segunda escritura en los stats.
-- **Al confirmar una edición**, el módulo llama a `ScbaHostSaveFit(playerid, part, pose)` en `host.inc`. Conecta esta función a los stats del PJ activo y actualiza solo esa pieza. Devuelve `true` cuando los stats acepten el cambio. Si devuelves `false`, el editor restaura el ajuste anterior. Al cancelar con Esc se omite la escritura.
+- **Al confirmar una edición**, el módulo llama a `ScbaHostSaveFit(playerid, part, pose)` en `host.inc`. Actualiza solo esa pieza en los stats del PJ activo. Devuelve `true` cuando los stats acepten el cambio. Si devuelves `false`, el editor restaura el ajuste anterior. Al cancelar con Esc se omite la escritura.
+- **Al restablecer**, `/scba ajustar reset` llama a `ScbaHostResetFits(playerid)`. Elimina en una sola operación los ajustes de ambas piezas de ese personaje. Devuelve `true` también si ya estaban ausentes. Así, al volver a equipar se elige la calibración vigente de la skin. Si el adaptador rechaza el cambio, el módulo recupera los ajustes anteriores.
 - **Al cambiar de PJ dentro de una conexión**, llama a `ScbaCleanup(playerid)` y `ScbaClearCharacterFits(playerid)` antes de cargar las filas del nuevo PJ. Si la consulta es asíncrona, comprueba que el personaje que solicitó las filas sigue activo antes de aplicarlas. Al desconectar, el módulo limpia la sesión automáticamente.
 
 La base pública conserva los ajustes en memoria durante la conexión. El servidor oficial aporta el ID del personaje y su almacenamiento permanente. `SCBA_FIT_OFFSET_LIMIT` permite configurar el desplazamiento máximo por eje desde el hueso (2.0 unidades por defecto). [Adaptador de stats](host.inc) · [Editor de accesorios de SA-MP](https://open.mp/docs/scripting/callbacks/OnPlayerEditAttachedObject)

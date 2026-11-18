@@ -36,16 +36,48 @@ stock ScbaStopFitEdit(playerid)
     if (IsPlayerConnected(playerid) && !ScbaHostIsMapping(playerid)) CancelEdit(playerid);
 }
 
-stock ScbaBeginFitEdit(playerid, E_SCBA_PART:part)
+stock ScbaRestoreDefaultFits(playerid)
+{
+    new bool:restored = true;
+    for (new E_SCBA_PART:part; part < SCBA_PART_COUNT; part++)
+    {
+        if (ScbaAttachmentSlots[playerid][part] == SCBA_EMPTY_SLOT) continue;
+        if (!ScbaAttachPart(playerid, part, true))
+        {
+            restored = false;
+            break;
+        }
+    }
+    if (restored && ScbaHostResetFits(playerid))
+    {
+        ScbaClearCharacterFits(playerid);
+        return SendClientMessage(playerid, SCBA_COLOUR_TEXT, "Se restableció el ajuste original del equipo y la máscara.");
+    }
+    for (new E_SCBA_PART:part; part < SCBA_PART_COUNT; part++)
+        if (ScbaAttachmentSlots[playerid][part] != SCBA_EMPTY_SLOT)
+            ScbaAttachPart(playerid, part);
+    return ScbaReject(playerid, "No se pudieron restablecer los ajustes. Se conservan los anteriores.");
+}
+
+stock ScbaHandleFitRequest(playerid, const option[])
 {
     if (!ScbaHasEquipment(playerid))
         return ScbaReject(playerid, "Primero ponte el equipo con /scba equipar.");
-    if (_:part < 0 || part >= SCBA_PART_COUNT)
-        return SendClientMessage(playerid, SCBA_COLOUR_MUTED, "Usa /scba ajustar equipo o /scba ajustar mascara.");
+    new E_SCBA_PART:part = SCBA_PART_COUNT;
+    new bool:reset;
+    if (option[0])
+    {
+        if (!strcmp(option, "equipo", true)) part = SCBA_BACKPACK;
+        else if (!strcmp(option, "mascara", true)) part = SCBA_MASK;
+        else if (!strcmp(option, "reset", true)) reset = true;
+    }
+    if (part == SCBA_PART_COUNT && !reset)
+        return SendClientMessage(playerid, SCBA_COLOUR_MUTED, "Usa /scba ajustar equipo, /scba ajustar mascara o /scba ajustar reset.");
     if (ScbaHostIsMapping(playerid))
         return ScbaReject(playerid, "Termina la edición del objeto antes de ajustar el SCBA.");
     if (ScbaPlayer[playerid][ScbaEditingPart] != SCBA_PART_COUNT)
         return ScbaReject(playerid, "Ya estás ajustando una pieza. Guarda el ajuste o pulsa Esc.");
+    if (reset) return ScbaRestoreDefaultFits(playerid);
     if (part == SCBA_MASK && !ScbaPlayer[playerid][ScbaMaskOn])
         return ScbaReject(playerid, "Primero ponte la máscara con /scba mascara.");
     new slot = ScbaAttachmentSlots[playerid][part];

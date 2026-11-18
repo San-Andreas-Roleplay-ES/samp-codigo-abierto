@@ -2,6 +2,7 @@
 #include <FCNPC>
 #undef MAX_PLAYERS
 #define MAX_PLAYERS (5)
+#include <YSI_Coding\y_va>
 #define CMD:%0(%1) stock TestCommand_%0(%1)
 #pragma warning disable 203
 #pragma warning disable 239
@@ -11,7 +12,14 @@ stock GetPlayerRoleplayName(playerid, name[], size)
     name[0] = EOS;
     return GetPlayerName(playerid, name, size);
 }
+new NativeFitWearer = INVALID_PLAYER_ID;
+stock NativeIsNpc(playerid)
+{
+    return playerid != NativeFitWearer && IsPlayerNPC(playerid);
+}
+#define IsPlayerNPC NativeIsNpc
 #include "features/scba/header"
+#undef IsPlayerNPC
 
 new NativeChecks, NativeFailures;
 
@@ -100,6 +108,30 @@ public RunScbaNativeTests()
             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0, 2.0);
         CheckNative(ScbaPlayer[npc][ScbaEditingPart] == SCBA_PART_COUNT && !ScbaHasCharacterPose[npc][SCBA_BACKPACK],
             "the native callback reaches the matching SCBA editor and closes it");
+        NativeFitWearer = npc;
+        ScbaPlayer[npc][ScbaAttachmentSkin] = GetPlayerSkin(npc);
+        for (new E_SCBA_PART:part; part < SCBA_PART_COUNT; part++)
+        {
+            if (part == SCBA_BACKPACK) ScbaHandleCommand(npc, "ajustar equipo");
+            else ScbaHandleCommand(npc, "ajustar mascara");
+            CheckNative(ScbaPlayer[npc][ScbaEditingPart] == part, "the normal command selects the right native attachment");
+            CallLocalFunction("OnPlayerEditAttachedObject", "iiiiifffffffff", npc, EDIT_RESPONSE_FINAL, ScbaAttachmentSlots[npc][part],
+                ScbaModels[part][ScbaCustomModel], ScbaModels[part][ScbaModelBone], 0.07, 0.17, 0.04, 5.0, 6.0, 7.0, 1.0, 1.0, 1.0);
+            CheckNative(ScbaHasCharacterPose[npc][part] && ScbaCharacterPose[npc][part][ScbaOffsetY] == 0.17
+                && ScbaCharacterPose[npc][part][ScbaRotationZ] == 7.0, "saving through the real callback reaches the stock stats adapter and session cache");
+        }
+        ScbaSupplyPoints[0][ScbaPointEnabled] = true;
+        ScbaSupplyPoints[0][ScbaPointActions] = _:SCBA_EQUIP;
+        ScbaSupplyPoints[0][ScbaPointInterior] = GetPlayerInterior(npc);
+        ScbaSupplyPoints[0][ScbaPointWorld] = GetPlayerVirtualWorld(npc);
+        GetPlayerPos(npc, ScbaSupplyPoints[0][ScbaPointX], ScbaSupplyPoints[0][ScbaPointY], ScbaSupplyPoints[0][ScbaPointZ]);
+        ScbaHandleCommand(npc, "guardar"); ScbaHandleCommand(npc, "equipar"); ScbaHandleCommand(npc, "mascara");
+        CheckNative(ScbaPlayer[npc][ScbaMaskOn] && ScbaHasCharacterPose[npc][SCBA_BACKPACK] && ScbaHasCharacterPose[npc][SCBA_MASK],
+            "both confirmed fits survive returning and collecting actual attached equipment");
+        ScbaHandleCommand(npc, "ajustar reset");
+        CheckNative(!ScbaHasCharacterPose[npc][SCBA_BACKPACK] && !ScbaHasCharacterPose[npc][SCBA_MASK],
+            "the stock reset adapter returns to both defaults without ending the session");
+        NativeFitWearer = INVALID_PLAYER_ID;
         ScbaRemovePart(npc, SCBA_MASK); ScbaRemovePart(npc, SCBA_BACKPACK);
         if (back != SCBA_EMPTY_SLOT && mask != SCBA_EMPTY_SLOT)
             CheckNative(!IsPlayerAttachedObjectSlotUsed(npc, back) && !IsPlayerAttachedObjectSlotUsed(npc, mask),

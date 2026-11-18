@@ -4,11 +4,18 @@ stock bool:ScbaHostCanUse(playerid)
     return playerid >= 0 && playerid < MAX_PLAYERS && IsPlayerConnected(playerid) && !IsPlayerNPC(playerid);
 }
 
-#if !defined ScbaHostSaveFit
+#if !defined SCBA_CUSTOM_FIT_STATS
 stock bool:ScbaHostSaveFit(playerid, E_SCBA_PART:part, const pose[E_SCBA_POSE])
 {
     // TODO(SCBA-STATS): write this piece to the selected character's stats.
     #pragma unused playerid, part, pose
+    return true;
+}
+
+stock bool:ScbaHostResetFits(playerid)
+{
+    // TODO(SCBA-STATS): delete both overrides for the selected character in one operation.
+    #pragma unused playerid
     return true;
 }
 #endif
@@ -60,7 +67,8 @@ stock ScbaSetTruckControlLock(playerid, bool:locked)
 stock ScbaPreloadServiceAnimations(playerid)
 {
     ApplyAnimation(playerid, SCBA_SERVICE_ANIM_LIBRARY, "null", SCBA_SERVICE_ANIM_SPEED, 0, 0, 0, 0, 0, 0);
-    ApplyAnimation(playerid, SCBA_TRUCK_ANIM_LIBRARY, "null", SCBA_SERVICE_ANIM_SPEED, 0, 0, 0, 0, 0, 0);
+    if (strcmp(SCBA_TRUCK_ANIM_LIBRARY, SCBA_SERVICE_ANIM_LIBRARY, true))
+        ApplyAnimation(playerid, SCBA_TRUCK_ANIM_LIBRARY, "null", SCBA_SERVICE_ANIM_SPEED, 0, 0, 0, 0, 0, 0);
     return 1;
 }
 

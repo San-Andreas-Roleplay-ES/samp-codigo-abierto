@@ -17,7 +17,7 @@ stock bool:ScbaPlacePart(playerid, E_SCBA_PART:part, slot, fit, const pose[E_SCB
         ScbaAttachmentFits[fit][ScbaFitScaleX], ScbaAttachmentFits[fit][ScbaFitScaleY], ScbaAttachmentFits[fit][ScbaFitScaleZ]) != 0;
 }
 
-stock bool:ScbaAttachPart(playerid, E_SCBA_PART:part)
+stock bool:ScbaAttachPart(playerid, E_SCBA_PART:part, bool:useDefault = false)
 {
     new slot = ScbaAttachmentSlots[playerid][part];
     if (slot == SCBA_EMPTY_SLOT)
@@ -32,7 +32,7 @@ stock bool:ScbaAttachPart(playerid, E_SCBA_PART:part)
     new fit = ScbaFindAttachmentFit(playerid, part);
     if (slot == SCBA_EMPTY_SLOT || fit == SCBA_EMPTY_SLOT) return false;
     new pose[E_SCBA_POSE];
-    if (ScbaHasCharacterPose[playerid][part]) pose = ScbaCharacterPose[playerid][part];
+    if (!useDefault && ScbaHasCharacterPose[playerid][part]) pose = ScbaCharacterPose[playerid][part];
     else
     {
         pose[ScbaOffsetX] = ScbaAttachmentFits[fit][ScbaFitX];

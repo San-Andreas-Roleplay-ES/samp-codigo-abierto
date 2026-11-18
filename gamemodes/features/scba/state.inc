@@ -38,6 +38,7 @@ enum E_SCBA_PLAYER
     ScbaSupplyVehicleId,
     ScbaSupplyVehicleModel,
     ScbaSupplyStartedAt,
+    ScbaSupplyDurationMs,
     bool:ScbaTruckControlsLocked,
     bool:ScbaServiceAnimSeen,
     ScbaLastAnimAttemptAt,
