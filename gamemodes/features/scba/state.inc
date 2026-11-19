@@ -5,6 +5,12 @@ enum E_SCBA_AIR_BAND
     SCBA_AIR_CRITICAL,
     SCBA_AIR_EMPTY
 }
+enum E_SCBA_EXPOSURE
+{
+    SCBA_OUTDOORS,
+    SCBA_INDOORS,
+    SCBA_AIR_DEPRIVED
+}
 enum E_SCBA_SOURCE
 {
     SCBA_SOURCE_NONE,
@@ -16,7 +22,7 @@ enum E_SCBA_PLAYER
     bool:ScbaEquipped,
     bool:ScbaMaskOn,
     bool:ScbaRegulatorConnected,
-    bool:ScbaBreathingIndoors,
+    E_SCBA_EXPOSURE:ScbaExposure,
     bool:ScbaAssetsReady,
     ScbaAirRemainingMs,
     ScbaLastAirUpdate,
@@ -88,6 +94,11 @@ stock ScbaNeedleStep(playerid)
 {
     return floatround(float(ScbaPlayer[playerid][ScbaAirRemainingMs])
         * float(SCBA_GAUGE_NEEDLE_STEPS) / float(SCBA_FULL_AIR_MS));
+}
+
+stock bool:ScbaTracksBreathing(playerid)
+{
+    return ScbaPlayer[playerid][ScbaEquipped] || ScbaPlayer[playerid][ScbaExposure] == SCBA_AIR_DEPRIVED;
 }
 
 stock bool:ScbaPlayerAlive(playerid)

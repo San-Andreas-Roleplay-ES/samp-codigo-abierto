@@ -33,7 +33,7 @@ La aguja y el porcentaje indican cuánto aire queda. **TIEMPO** muestra los minu
 | **EN SERVICIO** | Respiras del cilindro y queda más del 25 % de aire. |
 | **RESERVA** | Queda entre el 11 % y el 25 % en el indicador. Suena la alarma de reserva. |
 | **AIRE MUY BAJO** | Queda entre el 1 % y el 10 % en el indicador. La alarma se hace más insistente. |
-| **SIN AIRE** | Llevas la máscara puesta y el cilindro está vacío. En un interior empiezas a perder vida. |
+| **SIN AIRE** | Llevas la máscara puesta y el cilindro marca 0 %. Si te la quitas, la franja pasa a **DESCONECTADO** y el porcentaje sigue en 0 %. |
 | **RECARGANDO** | Estás recargando o cambiando el cilindro. El indicador conserva la lectura anterior hasta que termina. |
 
 La alarma de reserva emite dos pitidos y la de aire muy bajo, tres. Las alarmas y los jadeos se oyen hasta unos 10 metros en el mismo entorno. El aviso en el chat describe lo que se escucha sin identificar a quien lleva el equipo.
@@ -50,9 +50,9 @@ Al terminar verás **100 %** y **DESCONECTADO**. Ponte la máscara con `/scba ma
 
 ## Si se acaba el aire
 
-- **En un interior**, con la máscara puesta y el cilindro vacío, pierdes **5 puntos de vida cada 2 segundos**. El primer descuento llega al cumplir dos segundos en esas condiciones. Recibes un aviso privado y quienes estén cerca pueden oír tus jadeos.
-- Los jadeos se vuelven más frecuentes conforme baja tu vida. La primera pérdida mantiene la cámara estable. Cuando te quedan 60 puntos de vida o menos puede aparecer un mareo suave. A 30 o menos se intensifica.
-- **Salir al exterior o retirarte la máscara** detiene el daño, los jadeos y el mareo del equipo. Mientras sigas en el interior con la máscara puesta y el cilindro vacío, desconectar el regulador mantiene el mismo intervalo de daño. Si sales y vuelves a entrar en esas condiciones, el intervalo empieza de nuevo. Para reactivar el suministro necesitas recargar.
+- Si se acaba el aire en un interior o entras con el cilindro vacío, pierdes **5 puntos de vida cada 2 segundos**, con la máscara puesta o retirada. Quitártela, ponértela o guardar el equipo mantiene el mismo ritmo de daño.
+- En la primera pérdida recibes un aviso privado. Quienes estén cerca pueden oír tus jadeos, cada vez más frecuentes conforme baja tu vida. La cámara empieza estable. A partir de 60 puntos de vida puede aparecer un mareo suave que se intensifica a 30 o menos.
+- **Sal al exterior** para detener el daño y los síntomas. Si sigues dentro, **recarga, ponte la máscara y conecta el regulador** con `/scba aire`. La pérdida de vida continúa durante la recarga y termina cuando vuelves a respirar del cilindro. Si vuelves a entrar con el equipo vacío, el primer descuento llega dos segundos después.
 
 ## Guardar el equipo
 

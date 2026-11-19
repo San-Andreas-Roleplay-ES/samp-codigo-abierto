@@ -64,7 +64,7 @@ hook OnPlayerEditAtchObject(playerid, response, index, modelid, boneid, Float:fO
 
 hook OnPlayerInteriorChange(playerid, newinteriorid, oldinteriorid)
 {
-    if (ScbaPlayer[playerid][ScbaMaskOn]) ScbaUpdateBreathing(playerid, GetTickCount(), newinteriorid);
+    if (ScbaTracksBreathing(playerid)) ScbaUpdateBreathing(playerid, GetTickCount(), newinteriorid);
     return 1;
 }
 

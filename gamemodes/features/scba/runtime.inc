@@ -28,15 +28,13 @@ stock ScbaRemoveMask(playerid, bool:announce)
 {
     ScbaPlayer[playerid][ScbaMaskOn] = false;
     ScbaPlayer[playerid][ScbaRegulatorConnected] = false;
-    ScbaPlayer[playerid][ScbaBreathingIndoors] = false;
     ScbaRemovePart(playerid, SCBA_MASK);
-    ScbaClearSymptoms(playerid);
     ScbaUpdateGauge(playerid, GetTickCount());
     if (announce) ScbaSendMe(playerid, "se retira la máscara.");
     return 1;
 }
 
-stock ScbaCleanup(playerid)
+stock ScbaUnequip(playerid)
 {
     ScbaHideGauge(playerid);
     ScbaCancelSupply(playerid, false);
@@ -44,6 +42,13 @@ stock ScbaCleanup(playerid)
     ScbaRemovePart(playerid, SCBA_BACKPACK);
     ScbaPlayer[playerid][ScbaEquipped] = false;
     return 1;
+}
+
+stock ScbaCleanup(playerid)
+{
+    ScbaPlayer[playerid][ScbaExposure] = SCBA_OUTDOORS;
+    ScbaClearSymptoms(playerid);
+    return ScbaUnequip(playerid);
 }
 
 stock bool:ScbaEquip(playerid)
@@ -59,12 +64,14 @@ stock bool:ScbaEquip(playerid)
         return ScbaReject(playerid, "Espera a que termine la descarga del equipamiento.");
     if (!ScbaAttachPart(playerid, SCBA_BACKPACK))
         return ScbaReject(playerid, "No se pudo colocar el equipo. Comprueba los accesorios disponibles.");
-    if (!ScbaShowGauge(playerid, GetTickCount()))
+    new now = GetTickCount();
+    if (!ScbaShowGauge(playerid, now))
     {
         ScbaRemovePart(playerid, SCBA_BACKPACK);
         return ScbaReject(playerid, "No se pudo mostrar el manómetro. Inténtalo de nuevo.");
     }
     ScbaPlayer[playerid][ScbaEquipped] = true;
+    ScbaUpdateBreathing(playerid, now, GetPlayerInterior(playerid));
     ScbaPreloadServiceAnimations(playerid);
     ScbaPlayer[playerid][ScbaAttachmentSkin] = GetPlayerSkin(playerid);
     ScbaSendMe(playerid, "se coloca el equipo de respiración y ajusta el arnés.");
@@ -105,6 +112,7 @@ stock bool:ScbaToggleAir(playerid, now)
             return ScbaReject(playerid, "El cilindro está vacío. Retírate la máscara y usa /scba recargar en un punto de abastecimiento.");
         ScbaPlayer[playerid][ScbaRegulatorConnected] = true;
         ScbaPlayer[playerid][ScbaLastAirUpdate] = now;
+        ScbaUpdateBreathing(playerid, now, GetPlayerInterior(playerid));
         ScbaSendMe(playerid, "acopla el regulador a la máscara y empieza a respirar del cilindro.");
         ScbaNotifyReserve(playerid, now);
     }
@@ -121,7 +129,7 @@ stock bool:ScbaStore(playerid)
     new E_SCBA_SOURCE:source, index;
     if (!ScbaFindSource(playerid, SCBA_EQUIP, source, index))
         return ScbaReject(playerid, "Acércate a un punto de equipamiento para guardarlo.");
-    ScbaCleanup(playerid);
+    ScbaUnequip(playerid);
     ScbaSendMe(playerid, "se retira el equipo de respiración y lo guarda.");
     return true;
 }
@@ -186,7 +194,6 @@ stock ScbaCompleteSupply(playerid)
     ScbaPlayer[playerid][ScbaAirRemainingMs] = SCBA_FULL_AIR_MS;
     ScbaPlayer[playerid][ScbaReportedBand] = SCBA_AIR_NORMAL;
     ScbaPlayer[playerid][ScbaHasAlarmTime] = false;
-    ScbaPlayer[playerid][ScbaHasDistressTime] = false;
     ScbaUpdateGauge(playerid, GetTickCount());
     ScbaBroadcast(playerid, "El cilindro del equipo de respiración queda cargado.");
     return 1;
@@ -230,17 +237,23 @@ stock ScbaAdvanceAir(playerid, now)
 stock ScbaUpdateBreathing(playerid, now, interiorid)
 {
     if (ScbaPlayer[playerid][ScbaRegulatorConnected]) ScbaAdvanceAir(playerid, now);
-    new bool:indoors = ScbaHostIsIndoors(playerid, interiorid);
-    if (indoors == ScbaPlayer[playerid][ScbaBreathingIndoors]) return 1;
-    ScbaPlayer[playerid][ScbaBreathingIndoors] = indoors;
-    if (indoors) ScbaPlayer[playerid][ScbaNextDamageAt] = now + SCBA_DAMAGE_INTERVAL_MS;
-    else ScbaClearSymptoms(playerid);
+    new E_SCBA_EXPOSURE:previous = ScbaPlayer[playerid][ScbaExposure];
+    new E_SCBA_EXPOSURE:exposure = SCBA_OUTDOORS;
+    if (ScbaHostIsIndoors(playerid, interiorid))
+    {
+        if (previous == SCBA_OUTDOORS) ScbaPlayer[playerid][ScbaNextDamageAt] = now + SCBA_DAMAGE_INTERVAL_MS;
+        new bool:emptyCylinder = ScbaPlayer[playerid][ScbaEquipped] && ScbaPlayer[playerid][ScbaAirRemainingMs] == 0;
+        new bool:stillWithoutSupply = previous == SCBA_AIR_DEPRIVED && !ScbaPlayer[playerid][ScbaRegulatorConnected];
+        exposure = (emptyCylinder || stillWithoutSupply) ? SCBA_AIR_DEPRIVED : SCBA_INDOORS;
+    }
+    if (previous == SCBA_AIR_DEPRIVED && exposure != previous) ScbaClearSymptoms(playerid);
+    ScbaPlayer[playerid][ScbaExposure] = exposure;
     return 1;
 }
 
 stock ScbaApplyAirDamage(playerid, now)
 {
-    if (!ScbaPlayer[playerid][ScbaBreathingIndoors] || ScbaPlayer[playerid][ScbaAirRemainingMs] > 0) return 1;
+    if (ScbaPlayer[playerid][ScbaExposure] != SCBA_AIR_DEPRIVED) return 1;
     new lateBy = ScbaElapsed(now, ScbaPlayer[playerid][ScbaNextDamageAt]);
     if (lateBy < 0) return 1;
     new Float:health;
@@ -262,17 +275,15 @@ stock ScbaApplyAirDamage(playerid, now)
 
 stock ScbaTickPlayer(playerid, now)
 {
-    if (!IsPlayerConnected(playerid) || !ScbaPlayer[playerid][ScbaEquipped]) return 1;
-    if (!ScbaHostCanUse(playerid) || !ScbaPlayerAlive(playerid) || !ScbaRefreshEquipment(playerid))
-        return ScbaCleanup(playerid);
-    if (ScbaPlayer[playerid][ScbaSupplySource] != SCBA_SOURCE_NONE)
-        return ScbaTickSupply(playerid, now);
-    if (!ScbaPlayer[playerid][ScbaMaskOn]) return 1;
+    if (!IsPlayerConnected(playerid) || !ScbaTracksBreathing(playerid)) return 1;
+    if (!ScbaHostCanUse(playerid) || !ScbaPlayerAlive(playerid)) return ScbaCleanup(playerid);
+    if (ScbaPlayer[playerid][ScbaEquipped] && !ScbaRefreshEquipment(playerid)) ScbaUnequip(playerid);
     if (ScbaPlayer[playerid][ScbaDizzinessLevel] > 0 && GetPlayerState(playerid) != PLAYER_STATE_ONFOOT)
         ScbaSetDizziness(playerid, 0);
     ScbaUpdateBreathing(playerid, now, GetPlayerInterior(playerid));
     if (ScbaPlayer[playerid][ScbaRegulatorConnected]) ScbaNotifyReserve(playerid, now);
     ScbaApplyAirDamage(playerid, now);
+    if (ScbaPlayer[playerid][ScbaSupplySource] != SCBA_SOURCE_NONE) return ScbaTickSupply(playerid, now);
     if (ScbaPlayer[playerid][ScbaRegulatorConnected]
         && ScbaElapsed(now, ScbaPlayer[playerid][ScbaLastHudUpdate]) >= SCBA_HUD_INTERVAL_MS)
         ScbaUpdateGauge(playerid, now);

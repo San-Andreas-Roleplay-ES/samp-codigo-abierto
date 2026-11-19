@@ -17,8 +17,22 @@ stock NativeIsNpc(playerid)
 {
     return playerid != NativeFitWearer && IsPlayerNPC(playerid);
 }
+// An NPC has no game client to report its new health after the server sends the update.
+new NativeHealthUpdates;
+new Float:NativeRequestedHealth;
+stock NativeSetPlayerHealth(playerid, Float:health)
+{
+    if (playerid == NativeFitWearer)
+    {
+        NativeHealthUpdates++;
+        NativeRequestedHealth = health;
+    }
+    return SetPlayerHealth(playerid, health);
+}
 #define IsPlayerNPC NativeIsNpc
+#define SetPlayerHealth NativeSetPlayerHealth
 #include "features/scba/header"
+#undef SetPlayerHealth
 #undef IsPlayerNPC
 
 new NativeChecks, NativeFailures;
@@ -50,16 +64,16 @@ public RunScbaNativeTests()
         FCNPC_SetVirtualWorld(npc, 7);
         CheckNative(GetPlayerVirtualWorld(npc) == 7 && GetPlayerInterior(npc) == 0
             && !ScbaHostIsIndoors(npc, GetPlayerInterior(npc)), "a native virtual world can still be outdoors");
-        ScbaPlayer[npc][ScbaMaskOn] = true;
+        ScbaPlayer[npc][ScbaEquipped] = true;
         ScbaPlayer[npc][ScbaLastAirUpdate] = GetTickCount() - SCBA_SECOND_MS;
         FCNPC_SetInterior(npc, 11);
         CallLocalFunction("OnPlayerInteriorChange", "iii", npc, 11, 0);
         CheckNative(GetPlayerInterior(npc) == 11 && ScbaHostIsIndoors(npc, GetPlayerInterior(npc))
-            && ScbaPlayer[npc][ScbaBreathingIndoors], "a real interior ID and the production door callback enable indoor exposure");
+            && ScbaPlayer[npc][ScbaExposure] == SCBA_INDOORS, "the door callback tracks the interior with the mask removed");
         CheckNative(ScbaPlayer[npc][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS, "a native door callback does not drain air with the regulator disconnected");
         FCNPC_SetInterior(npc, 0);
         CallLocalFunction("OnPlayerInteriorChange", "iii", npc, 0, 11);
-        CheckNative(GetPlayerInterior(npc) == 0 && !ScbaPlayer[npc][ScbaBreathingIndoors],
+        CheckNative(GetPlayerInterior(npc) == 0 && ScbaPlayer[npc][ScbaExposure] == SCBA_OUTDOORS,
             "the door callback clears exposure on return to the native exterior");
         FCNPC_SetVirtualWorld(npc, 0);
         ScbaResetPlayer(npc);
@@ -131,6 +145,21 @@ public RunScbaNativeTests()
         ScbaHandleCommand(npc, "ajustar reset");
         CheckNative(!ScbaHasCharacterPose[npc][SCBA_BACKPACK] && !ScbaHasCharacterPose[npc][SCBA_MASK],
             "the stock reset adapter returns to both defaults without ending the session");
+        FCNPC_SetInterior(npc, 11);
+        CallLocalFunction("OnPlayerInteriorChange", "iii", npc, 11, 0);
+        ScbaPlayer[npc][ScbaAirRemainingMs] = 0;
+        ScbaHandleCommand(npc, "mascara");
+        new healthUpdates = NativeHealthUpdates, Float:healthBefore;
+        GetPlayerHealth(npc, healthBefore);
+        ScbaTickPlayer(npc, ScbaPlayer[npc][ScbaNextDamageAt]);
+        CheckNative(!ScbaPlayer[npc][ScbaMaskOn] && NativeHealthUpdates == healthUpdates + 1
+            && NativeRequestedHealth == healthBefore - SCBA_DAMAGE_AMOUNT,
+            "the server sends the reduced HP after the production command removes the real mask indoors");
+        FCNPC_SetInterior(npc, 0);
+        CallLocalFunction("OnPlayerInteriorChange", "iii", npc, 0, 11);
+        ScbaTickPlayer(npc, ScbaPlayer[npc][ScbaNextDamageAt] + SCBA_DAMAGE_INTERVAL_MS);
+        CheckNative(NativeHealthUpdates == healthUpdates + 1 && ScbaPlayer[npc][ScbaExposure] == SCBA_OUTDOORS,
+            "the real exterior callback ends maskless exposure without another HP loss");
         NativeFitWearer = INVALID_PLAYER_ID;
         ScbaRemovePart(npc, SCBA_MASK); ScbaRemovePart(npc, SCBA_BACKPACK);
         if (back != SCBA_EMPTY_SLOT && mask != SCBA_EMPTY_SLOT)

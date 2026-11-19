@@ -34,7 +34,7 @@ stock ScbaReportSymptoms(playerid, Float:health, now)
     while (stage < sizeof(ScbaSymptoms) - 1 && health <= ScbaSymptoms[stage][ScbaHealthAbove]) stage++;
     if (!ScbaPlayer[playerid][ScbaHasDistressTime])
     {
-        ScbaBroadcast(playerid, "Se escuchan jadeos bajo una máscara.", SCBA_DISTRESS_SOUND);
+        ScbaBroadcast(playerid, "Se escuchan jadeos entrecortados.", SCBA_DISTRESS_SOUND);
         ScbaPlayer[playerid][ScbaHasDistressTime] = true;
         ScbaPlayer[playerid][ScbaLastDistressAt] = now;
     }

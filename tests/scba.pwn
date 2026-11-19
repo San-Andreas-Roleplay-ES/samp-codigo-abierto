@@ -772,10 +772,12 @@ stock TestAirAndDamage()
     TestNow++; ScbaTickPlayer(0, TestNow);
     Check(TestHealthWrites == 3, "disconnecting does not postpone damage from an already empty cylinder indoors");
     ScbaHandleCommand(0, "mascara"); new writes = TestHealthWrites;
-    TestNow += 60000; ScbaTickPlayer(0, TestNow);
+    TestNow += SCBA_DAMAGE_INTERVAL_MS - 1; ScbaTickPlayer(0, TestNow);
     Check(TestHealthWrites == writes && TestGaugeShows(0, "mdl-21002:air_s_off")
         && !strcmp(TestDrawText[0][_:ScbaGauge[0][SCBA_AIR_READING]], "0%"),
-        "removing an empty mask stops damage and shows the disconnected empty cylinder");
+        "the removed mask shows a disconnected, empty cylinder without applying an early hit");
+    TestNow++; ScbaTickPlayer(0, TestNow);
+    Check(TestHealthWrites == writes + 1, "removing an empty mask preserves the original indoor damage deadline");
     ScbaHandleCommand(0, "mascara");
     ScbaHandleCommand(0, "aire");
     Check(ScbaPlayer[0][ScbaMaskOn] && !ScbaPlayer[0][ScbaRegulatorConnected] && TestGaugeShows(0, "mdl-21002:air_s_empty")
@@ -860,6 +862,56 @@ stock TestIndoorAirDamage()
     Check(!TestHealthWrites, "when air runs out inside, its true exhaustion time starts the damage interval");
     TestNow++; ScbaTickPlayer(0, TestNow);
     Check(TestHealthWrites == 1, "the indoor hit starts one full interval after the last air");
+}
+
+stock TestIndoorExposureRecovery()
+{
+    ResetTest(TEST_ROOM_INTERIOR); EquipAndActivate();
+    TestNow += SCBA_FULL_AIR_MS; ScbaTickPlayer(0, TestNow);
+    TestNow += SCBA_DAMAGE_INTERVAL_MS - 1;
+    ScbaHandleCommand(0, "mascara"); ScbaHandleCommand(0, "mascara"); ScbaHandleCommand(0, "mascara");
+    Check(!TestHealthWrites, "repeated mask changes cannot trigger an early first hit");
+    TestNow++; ScbaTickPlayer(0, TestNow);
+    Check(TestHealthWrites == 1 && strfind(TestLastMessage[1], "jadeos entrecortados") >= 0,
+        "the first hit still falls on time and the anonymous gasp also describes an uncovered face");
+
+    ScbaHandleCommand(0, "recargar");
+    TestNow += SCBA_DAMAGE_INTERVAL_MS; ScbaTickPlayer(0, TestNow);
+    Check(TestHealthWrites == 2 && ScbaPlayer[0][ScbaSupplySource] == SCBA_SOURCE_POINT,
+        "an indoor refill runs alongside the same damage clock");
+    TestNow += ScbaPlayer[0][ScbaSupplyDurationMs] - SCBA_DAMAGE_INTERVAL_MS; ScbaTickPlayer(0, TestNow);
+    Check(ScbaPlayer[0][ScbaAirRemainingMs] == SCBA_FULL_AIR_MS && ScbaPlayer[0][ScbaHasDistressTime],
+        "finishing the refill restores the cylinder while keeping the breathing episode");
+    new writes = TestHealthWrites;
+    TestNow += SCBA_DAMAGE_INTERVAL_MS; ScbaTickPlayer(0, TestNow);
+    ScbaHandleCommand(0, "mascara"); TestNow += SCBA_DAMAGE_INTERVAL_MS; ScbaTickPlayer(0, TestNow);
+    Check(TestHealthWrites == writes + 2 && !ScbaPlayer[0][ScbaRegulatorConnected],
+        "both a full cylinder and a refitted standby mask leave the wearer exposed");
+    ScbaHandleCommand(0, "aire");
+    new Float:healthAtRecovery = TestHealth[0];
+    TestNow += 2 * SCBA_DAMAGE_INTERVAL_MS; ScbaTickPlayer(0, TestNow);
+    Check(TestHealth[0] == healthAtRecovery && ScbaPlayer[0][ScbaAirRemainingMs] < SCBA_FULL_AIR_MS
+        && !ScbaPlayer[0][ScbaHasDistressTime] && !TestDrunk[0],
+        "breathing from the refilled cylinder ends damage and symptoms without restoring lost HP");
+
+    ResetTest(TEST_ROOM_INTERIOR); EquipAndActivate();
+    TestNow += SCBA_FULL_AIR_MS; ScbaTickPlayer(0, TestNow);
+    TestNow += SCBA_DAMAGE_INTERVAL_MS - 1; ScbaHandleCommand(0, "guardar");
+    TestNow++; ScbaTickPlayer(0, TestNow); ScbaTickPlayer(1, TestNow);
+    Check(!ScbaPlayer[0][ScbaEquipped] && TestHealthWrites == 1 && TestHealth[1] == 100.0,
+        "returning the equipment cannot reset exposure and an unrelated player in the room stays healthy");
+    ScbaHandleCommand(0, "equipar"); ScbaHandleCommand(0, "guardar");
+    TestNow += SCBA_DAMAGE_INTERVAL_MS; ScbaTickPlayer(0, TestNow);
+    Check(TestHealthWrites == 2, "collecting and returning the gear again keeps the same deadline");
+    TestInterior[0] = 0; ScbaTickPlayer(0, TestNow);
+    TestInterior[0] = TEST_ROOM_INTERIOR; TestNow += 2 * SCBA_DAMAGE_INTERVAL_MS; ScbaTickPlayer(0, TestNow);
+    Check(TestHealthWrites == 2 && !ScbaTracksBreathing(0), "leaving after storage ends the episode for the unequipped player");
+
+    ResetTest(TEST_ROOM_INTERIOR); EquipAndActivate();
+    TestNow += SCBA_FULL_AIR_MS; ScbaHandleCommand(0, "mascara"); ScbaHandleCommand(0, "recargar");
+    TestHealth[0] = SCBA_DAMAGE_AMOUNT; TestNow += SCBA_SUPPLY_MAX_MS; ScbaTickPlayer(0, TestNow);
+    Check(TestHealth[0] == 0.0 && !ScbaTracksBreathing(0) && ScbaPlayer[0][ScbaSupplySource] == SCBA_SOURCE_NONE
+        && ScbaPlayer[0][ScbaAirRemainingMs] == 0, "fatal exposure cleans up an indoor refill before it can credit air");
 }
 
 stock TestEmptyCylinderCadence()
@@ -948,7 +1000,8 @@ stock TestPrivateSymptoms()
     Check(TestHealth[0] == 30.0 && strfind(TestLastMessage[0], "desvanecerte") >= 0 && TestDrunk[0] == ScbaSymptoms[2][ScbaSwayLevel]
         && TestDrunk[0] > ScbaSymptoms[1][ScbaSwayLevel], "at 30 HP the private warning and sway intensify");
     ScbaHandleCommand(0, "mascara");
-    Check(!TestDrunk[0] && ScbaPlayer[0][ScbaReportedSymptom] == SCBA_EMPTY_SLOT, "removing the mask clears its camera effect and symptom episode");
+    Check(TestDrunk[0] == ScbaSymptoms[2][ScbaSwayLevel] && ScbaPlayer[0][ScbaReportedSymptom] == 2,
+        "removing the mask indoors preserves the current dizziness and symptom stage");
 
     ResetTest(TEST_ROOM_INTERIOR); EquipAndActivate(); ScbaPlayer[0][ScbaAirRemainingMs] = 0; TestHealth[0] = 30.0;
     TestNextAirDamage(); Check(!TestDrunk[0] && strfind(TestLastMessage[0], "Te falta") == 0, "even an injured player gets a first warning without dizziness");
@@ -992,7 +1045,10 @@ stock TestGaspCadence()
     ResetTest(TEST_ROOM_INTERIOR); EquipAndActivate(); ScbaPlayer[0][ScbaAirRemainingMs] = 0;
     TestNextAirDamage(); ScbaHandleCommand(0, "mascara");
     heard = TestSounds[1]; TestNow += 30000; ScbaTickPlayer(0, TestNow);
-    Check(TestSounds[1] == heard, "a disconnected mask does not keep gasping");
+    Check(TestSounds[1] == heard + 1, "the next due gasp remains audible after mask removal indoors");
+    TestInterior[0] = 0; ScbaTickPlayer(0, TestNow);
+    TestNow += 30000; ScbaTickPlayer(0, TestNow);
+    Check(TestSounds[1] == heard + 1 && !ScbaPlayer[0][ScbaHasDistressTime], "going outside ends the maskless breathing episode");
 }
 
 stock TestGaugeThresholds()
@@ -1480,6 +1536,7 @@ public OnGameModeInit()
     TestRegulatorToggle();
     TestAirAndDamage();
     TestIndoorAirDamage();
+    TestIndoorExposureRecovery();
     TestEmptyCylinderCadence();
     TestDamageTimerJitter();
     TestPrivateSymptoms();

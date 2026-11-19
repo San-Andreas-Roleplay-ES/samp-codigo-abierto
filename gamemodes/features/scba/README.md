@@ -27,9 +27,9 @@ Con la máscara puesta, `/scba aire` conecta el regulador y empieza el consumo. 
 La franja muestra «DESCONECTADO» en espera y «EN SERVICIO», «RESERVA» o «AIRE MUY BAJO» al consumir. Con la máscara puesta y el cilindro vacío muestra «SIN AIRE».
 La reserva inicial dura veinte minutos de consumo, tanto dentro como fuera. Al retirar la máscara o guardar el equipo, el regulador se desconecta.
 
-El personaje pierde 5 HP cada 2 segundos mientras está en un interior con la máscara puesta y el cilindro vacío. Desconectar el regulador en esas condiciones conserva el intervalo de daño.
-El primer descuento llega tras 2 segundos en esas condiciones. Salir al exterior o quitarse la máscara detiene el daño,
-los jadeos y el mareo del SCBA. Al volver a entrar con la máscara puesta y el cilindro vacío empieza un intervalo nuevo.
+Si el cilindro se agota en un interior o el personaje entra con el equipo vacío, empieza a perder 5 HP cada 2 segundos.
+Quitarse la máscara, devolver el equipo o iniciar una recarga conserva el intervalo y los síntomas.
+El daño cesa al salir al exterior o volver a respirar con el regulador conectado a un cilindro con aire. Al volver a entrar con el equipo vacío empieza un intervalo nuevo.
 Con el regulador conectado, el aire y las alarmas de reserva siguen su curso en el exterior. La regla se aplica a cualquier interior reconocido,
 haya o no un incendio. La duración del cilindro, el intervalo y la cantidad de daño se configuran por separado.
 
@@ -53,7 +53,7 @@ La primera pérdida de vida también avisa en privado de la falta de aire y mant
 En pérdidas posteriores, el jugador recibe un aviso nuevo al entrar en un tramo más grave.
 Al llegar a 60 HP empieza un balanceo suave que aumenta conforme baja la vida. A 30 HP se intensifica.
 `ScbaSymptoms` reúne los límites, la frecuencia de los jadeos y la intensidad inicial y final de cada tramo. El balanceo se aplica a pie,
-se retira al quitar la máscara y respeta los efectos de cámara que gestione el servidor.
+se retira cuando termina la exposición y respeta los efectos de cámara que gestione el servidor.
 
 El estado es temporal por conexión. La muerte limpia los accesorios y la interfaz,
 conservando la reserva dentro de la conexión. Una conexión nueva comienza sin equipo.
@@ -126,7 +126,7 @@ Esta opción requiere FCNPC-DL 2.0.11. Busca .local-server/plugins/FCNPC-DL.dll 
 
 El arnés comprueba la primera recarga, el audio del puesto y del camión, la devolución del equipo,
 la duración del cilindro y los estados del manómetro. Simula colocar la máscara en espera, conectar y desconectar el regulador entre pulsos y reanudar desde la reserva anterior. También verifica la frecuencia de los jadeos, la progresión
-del mareo y el alcance de las alarmas. Comprueba que el daño se detiene al salir y espera un intervalo completo al volver a entrar.
+del mareo y el alcance de las alarmas. Comprueba que quitarse la máscara, devolver el equipo y recargar en interiores conservan el intervalo de daño. Verifica ambas formas de recuperarse, salir o conectar el aire tras la recarga, y el intervalo completo al volver a entrar con el equipo vacío.
 Compara la secuencia de daño dentro de un interior con la autonomía normal y con un cilindro de 60 segundos. Los resultados quedan en
 `core-server.log`, `short-cylinder.log` y, al usar la opción nativa, `native-server.log`.
 
@@ -142,7 +142,7 @@ Los ejecutables de pruebas y el AMX candidato no sustituyen el servidor jugable.
 El ajuste se contrastó de frente, de perfil y de espaldas con la malla y los huesos de la skin 277.
 Para la prueba local, equípate en el puesto, ponte la máscara con `/scba mascara` y conecta el regulador con `/scba aire`. Con el cilindro vacío, comprueba que la vida se mantiene
 en la calle. Usa `/irpos 508.7362 -87.4335 998.9609 0 11` para entrar en el interior que utiliza la selección de personaje.
-A los dos segundos empieza el daño. Con `/irpos 1544.3810 -1675.4711 13.5583 0 0` vuelves al puesto y el daño se detiene.
+A los dos segundos empieza el daño. Retira la máscara con `/scba mascara`. Comprueba que el manómetro marque «DESCONECTADO» y 0 % y que la vida siga bajando al mismo ritmo. Con `/irpos 1544.3810 -1675.4711 13.5583 0 0` vuelves al puesto exterior y el daño se detiene.
 El primer descuento deja la cámara estable incluso si el personaje ya estaba herido.
 Para revisar los ajustes, mueve las dos piezas, confirma cada una con el disquete y usa `/scba guardar`. Vuelve a equiparte y ponte la máscara para comprobar ambas posiciones. Repite el ciclo después de `/scba ajustar reset` para comprobar el ajuste de fábrica.
 Para revisar la recarga, retira la máscara y compara un cilindro casi lleno con uno vacío en el puesto y en el camión. Comprueba que el personaje se agacha y que un compañero cercano oye el sonido correspondiente.

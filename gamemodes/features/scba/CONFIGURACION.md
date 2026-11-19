@@ -87,7 +87,7 @@ Las duraciones terminadas en `_MS` se expresan en milisegundos. Las distancias s
 | --- | --- | --- |
 | `SCBA_FULL_AIR_SECONDS` | 1200 s (20 min) | Autonomía de un cilindro lleno con el regulador conectado. El tiempo en espera conserva la reserva. Admite de 1 a 86 400 segundos. |
 | `SCBA_LOW_AIR_PERCENT` y `SCBA_CRITICAL_AIR_PERCENT` | 25 % y 10 % | Avisos al llegar a cada porcentaje. El umbral crítico debe ser mayor que cero e inferior al de reserva, y el de reserva inferior al 100 %. |
-| `SCBA_DAMAGE_AMOUNT` y `SCBA_DAMAGE_INTERVAL_MS` | 5 HP cada 2000 ms | Daño con el cilindro agotado, la máscara puesta y el jugador en un interior. Su intervalo sigue corriendo si se desconecta el regulador y es independiente de la autonomía. |
+| `SCBA_DAMAGE_AMOUNT` y `SCBA_DAMAGE_INTERVAL_MS` | 5 HP cada 2000 ms | El daño empieza en un interior con el equipo vacío. Quitarse la máscara, guardar el equipo o recargar mantiene el intervalo hasta salir o respirar de un cilindro con aire. La cadencia es independiente de la autonomía. |
 | `SCBA_SUPPLY_MIN_MS` y `SCBA_SUPPLY_MAX_MS` | 2000 y 8000 ms | Tiempo mínimo de manipulación y duración con el cilindro vacío. El mínimo debe ser positivo y el máximo puede ser igual o mayor. |
 | `SCBA_INTERACTION_RADIUS` | 3.0 | Radio común que las filas pueden usar o sustituir por un valor propio. |
 | `SCBA_SERVICE_MOVEMENT_RADIUS` | 0.75 | Desplazamiento que admite la recarga desde donde empezó el jugador. |
@@ -125,6 +125,6 @@ La base pública conserva los ajustes en memoria durante la conexión. El servid
 ## Integración y prueba en el mapeo
 
 - **Acceso LSFD.** `ScbaHostCanUse` acepta a los jugadores conectados que sean personas. Integra aquí el permiso de facción si el servidor debe limitar el uso a sus miembros. [Adaptación al servidor](host.inc)
-- **Edificios.** `ScbaHostIsIndoors` considera interior un ID mayor que cero. Para edificios mapeados en el interior `0`, conecta la consulta de propiedades o zonas del servidor. Esto afecta al daño por falta de aire. Un puesto de servicio sigue comprobando el interior y el mundo registrados en su fila.
+- **Edificios.** `ScbaHostIsIndoors` considera interior un ID mayor que cero. Para edificios mapeados en el interior `0`, conecta la consulta de propiedades o zonas del servidor. Esta consulta determina dónde puede empezar y continuar el daño por falta de aire. La exposición se sigue por personaje aunque se retire la máscara o se devuelva el equipo. Termina al salir o al conectar el regulador a una carga disponible. Un puesto de servicio sigue comprobando el interior y el mundo registrados en su fila.
 - **Puntos fijos.** En el ejemplo, `/irpos 508.7362 -87.4335 998.9609 7 11` lleva al vestuario. `/irpos` recibe **mundo y luego interior**, mientras que la fila guarda **interior y luego mundo**. Comprueba que puedes equiparte y guardar allí. En el banco, prueba a recargar con la máscara retirada y el cilindro parcialmente usado.
 - **Flota.** Prueba el camión registrado y otro del mismo modelo fuera del radio de cualquier puesto fijo. Solo el registrado debe ofrecer la acción. Mueve o retira el camión durante una recarga y comprueba que se interrumpe y se conserva la reserva anterior. [Pruebas automáticas](README.md#pruebas)
