@@ -21,3 +21,5 @@ announce
 scriptfiles/
 logs/
 docs/
+# Local development runtime and test artifacts
+/.local-server/
